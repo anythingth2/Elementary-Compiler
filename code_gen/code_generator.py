@@ -3,26 +3,41 @@ from functools import reduce
 
 class CodeGenerator:
 
-    def __init__(self):
-        self.directives = ['global _main']
-        self.text = ''
-        self.data = []
+    def __init__(self, expressions: list = None):
+        self.directives = set()
+        self.data = set()
+        self.bss = set()
+        if expressions is not None:
+            self.expressions = expressions
+        else:
+            self.expressions = []
 
     def compile(self):
+
+        def formatter(text): return  text.replace(' ', '\t')
+
+        self.directives = set([formatter(' global _main')])
+
+        for expr in self.expressions:
+            self.directives.add(formatter(expr.eval_pre_define()))
+            self.data.add(formatter(expr.eval_data()))
+            self.bss.add(formatter(expr.eval_bss()))
+
         code = ''
-        if len(self.directives) > 0:
-            _directives = list(
-                map(lambda direc: '\t' + direc.replace(' ', '\t'), self.directives))
-            code += reduce(lambda acc, ele: acc + '\n' + ele, _directives)
+        code += reduce(lambda acc, ele: acc + '\n' + ele, self.directives)
         code += '\n'
-        code += '\tsection\t.text'
-        code += self.text
+        code += '\tsection\t.text\n'
+
+        for expr in self.expressions:
+            code += expr.eval()
         code += '\n'
-        code += '\tsection\t.data'
-        if len(self.data) > 0:
-            _data = list(map(lambda ele: '\t' + ele.replace(' ','\t'),self.data))
-            code += reduce(lambda acc, ele:acc + '\n' + ele, _data)
+
+        code += '\tsection\t.data\n'
+        code += reduce(lambda acc, ele: acc + '\n' + ele, self.data)
         code += '\n'
+
+        code += '\tsection\t.bss\n'
+        code += reduce(lambda acc, ele: acc + '\n' + ele, self.bss)
 
         return code
 

@@ -1,0 +1,6 @@
+echo compiling...
+nasm -fmacho64 ./test.nasm
+echo assembling...
+gcc ./test.o -o test
+echo done!
+./test
