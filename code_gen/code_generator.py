@@ -14,22 +14,28 @@ class CodeGenerator:
 
     def compile(self):
 
-        def formatter(text): return  text.replace(' ', '\t')
 
-        self.directives = set([formatter(' global _main')])
+
+        self.directives = set(['\tglobal\t_main','\textern\t_printf','\tdefault\trel'])
 
         for expr in self.expressions:
-            self.directives.add(formatter(expr.eval_pre_define()))
-            self.data.add(formatter(expr.eval_data()))
-            self.bss.add(formatter(expr.eval_bss()))
+            self.directives.add(expr.eval_pre_define())
+            self.data.add(expr.eval_data())
+            self.bss.add(expr.eval_bss())
 
         code = ''
         code += reduce(lambda acc, ele: acc + '\n' + ele, self.directives)
         code += '\n'
         code += '\tsection\t.text\n'
-
+        code += '_main:\n'
+        code += '\tpush\trbx\n'
+        code += '\tdec\trdi\n'
+        code += '\n'
         for expr in self.expressions:
             code += expr.eval()
+
+        code += '\tpop\trbx\n'
+        code += '\tret\n'
         code += '\n'
 
         code += '\tsection\t.data\n'

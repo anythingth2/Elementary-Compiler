@@ -6,7 +6,7 @@ class StringImmediateValue(ImmediateValue):
     def __init__(self,value:str):
         self.value = value
     def eval(self):
-        return '"' + self.value.replace('\n', '", 10,"')+ '"'
+        return '"' + self.value.replace('\n', '", 10,"')+ '" ,0'
 
 class DataType:
     db = 'db'

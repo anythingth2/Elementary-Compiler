@@ -28,7 +28,7 @@ class DefineInitailizedVariable(Expression):
         return ''
     #   label:  db  "HELOELOELO"
     def eval_data(self):
-        return f'{self.var.label}: {self.var.size} {self.value.eval()}'
+        return f'{self.var.label}:\t{self.var.size}\t{self.value.eval()}'
 
 class DefineUninitailizedVariable(Expression):
     def __init__(self, var: DataType.DataType, length:int):
@@ -39,13 +39,20 @@ class DefineUninitailizedVariable(Expression):
         return ''
     #   label:  db  "HELOELOELO"
     def eval_bss(self):
-        return f'{self.var.label}: {self.var.size} {self.length}'
-
-
+        return f'{self.var.label}:\t{self.var.size}\t{self.length}'
 
 class printText(Expression):
     def __init__(self, text: DataType.DataType):
         self.text = text
 
     def eval(self):
-        pass
+        return f"""
+    push    rax
+    push    rcx
+    lea     rdi, [{self.text.label}]
+    mov     rax, 1
+    call    _printf
+    pop     rcx
+    pop     rax
+
+        """
