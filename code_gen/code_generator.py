@@ -1,22 +1,26 @@
 from functools import reduce
 
-
 class CodeGenerator:
 
-    def __init__(self, expressions: list = None):
+    def __init__(self, path: str):
+        self.sourceCodePath = path
+
         self.directives = set()
         self.data = set()
         self.bss = set()
-        if expressions is not None:
-            self.expressions = expressions
-        else:
-            self.expressions = []
+        self.expressions = []
+        
+        
+    def _generateExpression(self):
+        lines = None
+        with open(self.sourceCodePath,'r',encoding='utf-8') as f:
+            lines = f.readlines()
+
 
     def compile(self):
-
-
-
-        self.directives = set(['\tglobal\t_main','\textern\t_printf','\tdefault\trel'])
+        self._generateExpression()
+        self.directives = set(
+            ['\tglobal\t_main', '\textern\t_printf', '\tdefault\trel'])
 
         for expr in self.expressions:
             self.directives.add(expr.eval_pre_define())
