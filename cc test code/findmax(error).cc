@@ -7,6 +7,6 @@ begin
         begin
                 max := num[i]
         end
-        i = i+1
+        i = i+1            // it should be : i := i+1
 end
-show "Max number is " max
+show "Max number is " max // it should be : show "Max number is ", max
