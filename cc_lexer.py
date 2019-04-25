@@ -2,17 +2,15 @@ import ply.lex as lex
 
 
 tokens = (
-    'NAME', 'NUMBER', "STRING",
+    'NAME', 'NUMBER', 'STRING',
     'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'MODULO', 'ASSIGNMENT',
     'L_PAREN', 'R_PAREN', 'PRINT',
-    "SEPARATOR", "L_ARRAY", 'R_ARRAY', 'L_SIZE_ARRAY', 'R_SIZE_ARRAY',
+    'SEPARATOR', 'L_ARRAY', 'R_ARRAY', 'L_ELEM_ARRAY', 'R_ELEM_ARRAY',
     'EQUALS', 'NOT_EQUALS', 'UPWARD', 'UPWARD_EQUALS', 'DOWNWARD', 'DOWNWARD_EQUALS',
-    'IF', 'ELSE', 'BEGIN', 'END', 'REPEAT', 'INC', 'DEC', 'TO'
+    'IF', 'ELSE', 'BEGIN', 'END', 'REPEAT', 'INC', 'DEC', 'TO', 'NEWLINE'
 )
 
 # Tokens
-
-
 t_STRING = r'\"[a-zA-Z0-9_]*\"'
 
 t_PRINT = r'show:'
@@ -33,11 +31,11 @@ t_DOWNWARD_EQUALS = r'<='
 t_SEPARATOR = r','
 t_L_ARRAY = r'\['
 t_R_ARRAY = r'\]'
-t_L_SIZE_ARRAY = r'\{'
-t_R_SIZE_ARRAY = r'\}'
+t_L_ELEM_ARRAY = r'\{'
+t_R_ELEM_ARRAY = r'\}'
 
-t_LPAREN = r'\('
-t_RPAREN = r'\)'
+t_L_PAREN = r'\('
+t_R_PAREN = r'\)'
 
 t_IF = r'if'
 t_ELSE = r'else'
@@ -49,7 +47,6 @@ t_DEC = r'dec'
 t_TO = r'to'
 
 t_NAME = r'[a-zA-Z_][a-zA-Z0-9_]*'
-
 
 def t_NUMBER(t):
     r'0x[0-9a-fA-f]+|\d+'
@@ -64,13 +61,14 @@ def t_NUMBER(t):
     return t
 
 
-# Ignored characters
-t_ignore = " \t"
-
-
-def t_newline(t):
+def t_NEWLINE(t):
     r'\n+'
     t.lexer.lineno += t.value.count("\n")
+    return t
+
+
+# Ignored characters
+t_ignore = " \t"
 
 
 def t_error(t):
@@ -80,6 +78,7 @@ def t_error(t):
 
 # Build the lexer
 lexer = lex.lex(debug=1)
+# lexer = lex.lex()
 if __name__ == '__main__':
     while True:
         try:
