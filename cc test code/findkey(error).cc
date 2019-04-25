@@ -12,9 +12,9 @@ begin
                 index := i
         end
         i := i+1
-en
+en                      // it should be : end
 
-if found == 1
+if found == 1           //it should be : if found = 1
 begin
         show " Found ", key, " at index ", index
 end
