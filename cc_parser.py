@@ -21,9 +21,20 @@ def p_stm_assign(t):
     names[t[1]] = t[3]
     t[0] = (t[2], t[1], t[3])
 
-def p_stm_assign_arr(t):
+def p_stm_declare_arr(t):
     '''stm : ID ASSIGNMENT arr NEWLINE'''
     names[t[1]] = t[3] # t[3]?
+    pass
+
+def p_stm_assign_arr(t):
+    '''stm : ID L_ARRAY expr R_ARRAY ASSIGNMENT expr NEWLINE'''
+    # if t[3] > 0:
+    #     names[t[1]][] = t[3]
+    #     pass
+    # else:
+    #     print("Undefined name '{}' : line ({})".format(t[1], t.lineno))
+    #     t[0] = 0
+    #     pass
     pass
 
 def p_stm_if(t):
@@ -76,8 +87,19 @@ def p_expr_name(t):
     try:
         t[0] = names[t[1]]
     except LookupError:
-        print("Undefined name '%s'" % t[1])
-        t[0] = 0
+        print("Undefined name '{}' : line ({})".format(t[1], t.lineno))
+        t[0] = None
+
+def p_expr_name_arr(t):
+    '''expr : ID L_ARRAY expr R_ARRAY'''
+    try:
+        t[0] = names[t[1]][t[3]]
+    except LookupError:
+        print("Undefined name '{}' : line ({})".format(t[1], t.lineno))
+        t[0] = None
+    except ValueError:
+        print("Index '{}[{}]' out of range : line ({})".format(t[1], t[3], t.lineno))
+        t[0] = None
 
 
 # condition
@@ -96,13 +118,14 @@ def p_cond_expr(t):
 
 def p_cond_group(t):
     '''cond : L_PAREN cond R_PAREN'''
-    t[0] = bool(t[2])
+    t[0] = t[2]
+    pass
 
 
 # array
 def p_arr_size(t):
     'arr : L_ARRAY expr R_ARRAY'
-    pass
+    t[0] = [0]*t[2]
 
 def p_arr_elem(t):
     'arr : L_ELEM_ARRAY expr R_ELEM_ARRAY'
@@ -112,12 +135,11 @@ def p_arr_elem(t):
 # element
 def p_elem(t):
     '''elem : expr'''
-    pass
-    # t[0] = bool(t[1])
+    t[0] = t[1]
 
 def p_elem_many(t):
     '''elem : expr SEPARATOR elem'''
-    pass
+    t[0] = (t[2], t[1], t[3])
 
 
 # string
