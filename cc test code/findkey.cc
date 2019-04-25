@@ -16,9 +16,9 @@ end
 
 if found = 1
 begin
-        show : " Found ", key, " at index ", index
+        show " Found ", key, " at index ", index
 end
 else
 begin
-        show : key, " is not in this array"
+        show key, " is not in this array"
 end
