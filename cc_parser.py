@@ -1,28 +1,38 @@
-import cc_lexer
+from cc_lexer import tokens
 
 # Parsing rules
 precedence = (
-    ('left','PLUS','MINUS'),
-    ('left','TIMES','DIVIDE','MODULO'),
-    ('right','UMINUS'),
-    )
+    ('left', 'EQUALS', 'NOT_EQUALS'),
+    ('left', 'UPWARD', 'UPWARD_EQUALS', 'DOWNWARD', 'DOWNWARD_EQUALS'),
+
+    ('left', 'PLUS', 'MINUS'),
+    ('left', 'TIMES', 'DIVIDE', 'MODULO'),
+    ('right', 'UMINUS'),
+
+    ('left', 'L_PAREN', 'R_PAREN', 'L_ARRAY', 'R_ARRAY'),
+)
 
 # dictionary of variable names
 names = { }
 
 # statement
 def p_stm_assign(t):
-    '''stm : NAME ASSIGNMENT expr NEWLINE
-           | NAME ASSIGNMENT arr NEWLINE'''
+    '''stm : ID ASSIGNMENT expr NEWLINE'''
     names[t[1]] = t[3]
+    t[0] = (t[2], t[1], t[3])
+
+def p_stm_assign_arr(t):
+    '''stm : ID ASSIGNMENT arr NEWLINE'''
+    names[t[1]] = t[3] # t[3]?
+    pass
 
 def p_stm_if(t):
-    'stm : IF cond NEWLINE BEGIN NEWLINE stm END NEWLINE'
+    '''stm : IF cond NEWLINE BEGIN NEWLINE stm END NEWLINE'''
     pass
     # print(t[1])
 
 def p_stm_if_else(t):
-    'stm : IF cond NEWLINE BEGIN NEWLINE stm END NEWLINE ELSE NEWLINE BEGIN NEWLINE stm END NEWLINE'
+    '''stm : IF cond NEWLINE BEGIN NEWLINE stm END NEWLINE ELSE NEWLINE BEGIN NEWLINE stm END NEWLINE'''
     pass
     # print(t[1])
 
@@ -35,7 +45,7 @@ def p_stm_loop(t):
         pass
 
 def p_stm_print(t):
-    'stm : PRINT str NEWLINE'
+    '''stm : PRINT str NEWLINE'''
     pass
 
 
@@ -46,31 +56,23 @@ def p_expr_op(t):
             | expr TIMES expr
             | expr DIVIDE expr
             | expr MODULO expr'''
-    if t[2] == '+'  : 
-        t[0] = t[1] + t[3]
-    elif t[2] == '-': 
-        t[0] = t[1] - t[3]
-    elif t[2] == '*': 
-        t[0] = t[1] * t[3]
-    elif t[2] == '/': 
-        t[0] = t[1] / t[3]
-    elif t[2] == 'mod': 
-        t[0] = t[1] % t[3]
+    t[0] = (t[2], t[1], t[3])
 
 def p_expr_uminus(t):
-    'expr : MINUS expr %prec UMINUS'
-    t[0] = -t[2]
+    '''expr : MINUS expr %prec UMINUS'''
+    t[0] = (t[1], 0, t[2])
 
 def p_expr_group(t):
-    'expr : L_PAREN expr R_PAREN'
+    '''expr : L_PAREN expr R_PAREN'''
     t[0] = t[2]
+    pass
 
 def p_expr_number(t):
-    'expr : NUMBER'
+    '''expr : NUMBER'''
     t[0] = t[1]
 
 def p_expr_name(t):
-    'expr : NAME'
+    '''expr : ID'''
     try:
         t[0] = names[t[1]]
     except LookupError:
@@ -86,25 +88,14 @@ def p_cond_op(t):
             | cond UPWARD_EQUALS cond
             | cond DOWNWARD cond
             | cond DOWNWARD_EQUALS cond'''
-    if t[2] == '='  : 
-        t[0] = (t[1] == t[3])
-    elif t[2] == '!=': 
-        t[0] = (t[1] != t[3])
-    elif t[2] == '>': 
-        t[0] = (t[1] > t[3])
-    elif t[2] == '>=': 
-        t[0] = (t[1] >= t[3])
-    elif t[2] == '<': 
-        t[0] = (t[1] < t[3])
-    elif t[2] == '<=': 
-        t[0] = (t[1] <= t[3])
+    t[0] = (t[2], t[1], t[3])
 
 def p_cond_expr(t):
-    'cond : expr'
+    '''cond : expr'''
     t[0] = bool(t[1])
 
 def p_cond_group(t):
-    'cond : L_PAREN cond R_PAREN'
+    '''cond : L_PAREN cond R_PAREN'''
     t[0] = bool(t[2])
 
 
@@ -120,12 +111,12 @@ def p_arr_elem(t):
 
 # element
 def p_elem(t):
-    'elem : expr'
+    '''elem : expr'''
     pass
     # t[0] = bool(t[1])
 
 def p_elem_many(t):
-    'elem : expr SEPARATOR elem'
+    '''elem : expr SEPARATOR elem'''
     pass
 
 
@@ -136,21 +127,21 @@ def p_str(t):
     t[0] = t[1]
 
 def p_str_many(t):
-    'str : str SEPARATOR str'
-    pass
+    '''str : str SEPARATOR str'''
+    t[0] = (t[2], t[1], t[3])
 
 
 # error
 def p_error(t):
-    print("Syntax error at '%s'" % t.value)
+    print("Syntax error : at '{}' line ({})".format(t.value, t.lineno))
 
 import ply.yacc as yacc
 parser = yacc.yacc()
 
-while True:
-    try:
-        s = input('calc > ')   # Use raw_input on Python 2
-    except EOFError:
-        break
-    # parser.parse(s)
-    print(yacc.parse(s))
+# while True:
+#     try:
+#         s = input('calc > ')   # Use raw_input on Python 2
+#     except EOFError:
+#         break
+#     # parser.parse(s)
+#     print(yacc.parse(s))
