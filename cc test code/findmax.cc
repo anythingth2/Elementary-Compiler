@@ -9,4 +9,4 @@ begin
         end
         i := i+1
 end
-show : "Max number is ", max
+show "Max number is ", max
