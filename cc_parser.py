@@ -23,18 +23,23 @@ def p_stm_assign(t):
 
 def p_stm_declare_arr(t):
     '''stm : ID ASSIGNMENT arr NEWLINE'''
-    names[t[1]] = t[3] # t[3]?
+    names[t[1]] = t[3]
     pass
 
 def p_stm_assign_arr(t):
     '''stm : ID L_ARRAY expr R_ARRAY ASSIGNMENT expr NEWLINE'''
-    # if t[3] > 0:
-    #     names[t[1]][] = t[3]
-    #     pass
-    # else:
-    #     print("Undefined name '{}' : line ({})".format(t[1], t.lineno))
-    #     t[0] = 0
-    #     pass
+    if t[3] > 0:
+        try:
+            names[t[1]][t[3]] = t[6]
+        except LookupError:
+            print("Line ({}) : Undefined name '{}'".format(t.lineno, t[1]))
+            t[0] = None
+        except ValueError:
+            print("Line ({}) : Index '{}[{}]' out of range".format(t.lineno, t[1], t[3]))
+            t[0] = None
+    else:
+        print("Line ({}) : Index '{}[{}]' out of range".format(t.lineno, t[1], t[3]))
+        t[0] = None
     pass
 
 def p_stm_if(t):
@@ -60,7 +65,7 @@ def p_stm_print(t):
     pass
 
 
-# exoression
+# expression
 def p_expr_op(t):
     '''expr : expr PLUS expr
             | expr MINUS expr
@@ -87,7 +92,7 @@ def p_expr_name(t):
     try:
         t[0] = names[t[1]]
     except LookupError:
-        print("Undefined name '{}' : line ({})".format(t[1], t.lineno))
+        print("Line ({}) : Undefined name '{}'".format(t.lineno, t[1]))
         t[0] = None
 
 def p_expr_name_arr(t):
@@ -95,10 +100,10 @@ def p_expr_name_arr(t):
     try:
         t[0] = names[t[1]][t[3]]
     except LookupError:
-        print("Undefined name '{}' : line ({})".format(t[1], t.lineno))
+        print("Line ({}) : Undefined name '{}'".format(t.lineno, t[1]))
         t[0] = None
     except ValueError:
-        print("Index '{}[{}]' out of range : line ({})".format(t[1], t[3], t.lineno))
+        print("Line ({}) : Index '{}[{}]' out of range".format(t.lineno, t[1], t[3]))
         t[0] = None
 
 
@@ -128,18 +133,18 @@ def p_arr_size(t):
     t[0] = [0]*t[2]
 
 def p_arr_elem(t):
-    'arr : L_ELEM_ARRAY expr R_ELEM_ARRAY'
-    pass
+    'arr : L_ELEM_ARRAY elem R_ELEM_ARRAY'
+    t[0] = t[2]
 
 
 # element
 def p_elem(t):
     '''elem : expr'''
-    t[0] = t[1]
+    t[0] = [t[1]]
 
 def p_elem_many(t):
     '''elem : expr SEPARATOR elem'''
-    t[0] = (t[2], t[1], t[3])
+    t[0] = t[3].insert(0, t[1])
 
 
 # string
@@ -155,7 +160,7 @@ def p_str_many(t):
 
 # error
 def p_error(t):
-    print("Syntax error : at '{}' line ({})".format(t.value, t.lineno))
+    print("Line ({}) : Syntax error at '{}'".format(t.lineno, t.value))
 
 import ply.yacc as yacc
 parser = yacc.yacc()
