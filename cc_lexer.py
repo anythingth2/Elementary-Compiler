@@ -1,25 +1,35 @@
-import ply.lex as lex
+reserved = {
+    'show'      : 'PRINT',
+    'if'        : 'IF',
+    'else'      : 'ELSE',
+    'begin'     : 'BEGIN',
+    'end'       : 'END',
+    'repeat'    : 'REPEAT',
+    'inc'       : 'INC',
+    'dec'       : 'DEC',
+    'to'        : 'TO',
+    'mod'       : 'MODULO'
+ }
 
-
-tokens = (
-    'NAME', 'NUMBER', 'STRING',
-    'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'MODULO', 'ASSIGNMENT',
-    'L_PAREN', 'R_PAREN', 'PRINT',
-    'SEPARATOR', 'L_ARRAY', 'R_ARRAY', 'L_ELEM_ARRAY', 'R_ELEM_ARRAY',
+tokens = [   
+    'ID', 'NUMBER', 'STRING', 'ASSIGNMENT', 
+    'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'L_PAREN', 'R_PAREN',
+    'L_ARRAY', 'R_ARRAY', 'L_ELEM_ARRAY', 'R_ELEM_ARRAY', 'SEPARATOR', 
     'EQUALS', 'NOT_EQUALS', 'UPWARD', 'UPWARD_EQUALS', 'DOWNWARD', 'DOWNWARD_EQUALS',
-    'IF', 'ELSE', 'BEGIN', 'END', 'REPEAT', 'INC', 'DEC', 'TO', 'NEWLINE'
-)
+    'NEWLINE'
+ ] + list(reserved.values())
 
 # Tokens
-t_STRING = r'\"[a-zA-Z0-9_]*\"'
+t_STRING = r'"[a-zA-Z0-9_;:=\t\r\n\'\\ ]*"'
+# t_STRING = r'"[a-zA-Z0-9_]*"' # inside wrong!
 
-t_PRINT = r'show:'
 t_PLUS = r'\+'
 t_MINUS = r'-'
 t_TIMES = r'\*'
 t_DIVIDE = r'/'
-t_MODULO = r'mod'
 t_ASSIGNMENT = r':='
+t_L_PAREN = r'\('
+t_R_PAREN = r'\)'
 
 t_EQUALS = r'='
 t_NOT_EQUALS = r'!='
@@ -34,19 +44,10 @@ t_R_ARRAY = r'\]'
 t_L_ELEM_ARRAY = r'\{'
 t_R_ELEM_ARRAY = r'\}'
 
-t_L_PAREN = r'\('
-t_R_PAREN = r'\)'
-
-t_IF = r'if'
-t_ELSE = r'else'
-t_BEGIN = r'begin'
-t_END = r'end'
-t_REPEAT = r'repeat'
-t_INC = r'inc'
-t_DEC = r'dec'
-t_TO = r'to'
-
-t_NAME = r'[a-zA-Z_][a-zA-Z0-9_]*'
+def t_ID(t):
+     r'[a-zA-Z_][a-zA-Z_0-9]*'
+     t.type = reserved.get(t.value, 'ID')    # check for reserved words
+     return t
 
 def t_NUMBER(t):
     r'0x[0-9a-fA-f]+|\d+'
@@ -60,7 +61,6 @@ def t_NUMBER(t):
         t.value = 0
     return t
 
-
 def t_NEWLINE(t):
     r'\n+'
     t.lexer.lineno += t.value.count("\n")
@@ -72,22 +72,24 @@ t_ignore = " \t"
 
 
 def t_error(t):
-    print("Illegal character '%s'" % t.value[0])
+    print("Illegal character : '{}'".format(t.value[0]))
     # t.lexer.skip(1)
 
 
 # Build the lexer
-lexer = lex.lex(debug=1)
-# lexer = lex.lex()
-if __name__ == '__main__':
-    while True:
-        try:
-            line = input('cc> ')
-            lexer.input(line)
-            while True:
-                token = lex.token()
-                if not token:
-                    break
-                print(token)
-        except:
-            break
+import ply.lex as lex
+lexer = lex.lex()
+
+
+# if __name__ == '__main__':
+#     while True:
+#         try:
+#             line = input('cc> ')
+#             lexer.input(line)
+#             while True:
+#                 token = lex.token()
+#                 if not token:
+#                     break
+#                 print(token)
+#         except:
+#             break

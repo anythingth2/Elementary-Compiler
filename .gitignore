@@ -4,3 +4,6 @@
 *.out
 *.s
 *.o
+parser/blabla\.py
+
+parser/original\.py
