@@ -10,14 +10,10 @@ def trav(root, sp):
             print(' '*sp*rng, root[0])
         else:
             print(' '*sp*rng, root)
-        try:
-            trav(root[1], sp-1)
-        except:
-            pass
-        try:
-            trav(root[2], sp+1)
-        except:
-            pass
+        try: trav(root[1], sp-1)
+        except: pass
+        try: trav(root[2], sp+1)
+        except: pass
 
 if __name__ == '__main__':
     #  open source code
