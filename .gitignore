@@ -6,4 +6,7 @@
 *.o
 parser/blabla\.py
 
-parser/original\.py
+parser/original\.
+
+parser/*
+
