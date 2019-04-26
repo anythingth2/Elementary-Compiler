@@ -2,7 +2,6 @@ from cc_lexer import *
 from cc_parser import *
 
 # Inorder traversal : Left -> Root -> Right
-
 def trav(root, sp):
     rng = 5
     if root != None:
@@ -37,7 +36,8 @@ if __name__ == '__main__':
             tree = parser.parse(line)
             # print('<Tree : ', tree, ' >', sep='')
             print()
-            trav(tree, int(len(tree)/2))
+            if tree:
+                trav(tree, int(len(tree)/2))
         # print()
     except EOFError:
         print('File error : can\'t open file')
