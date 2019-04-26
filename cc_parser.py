@@ -2,6 +2,7 @@ from cc_lexer import tokens
 
 # Parsing rules
 precedence = (
+    ('left', 'ASSIGNMENT'),
     ('left', 'EQUALS', 'NOT_EQUALS'),
     ('left', 'UPWARD', 'UPWARD_EQUALS', 'DOWNWARD', 'DOWNWARD_EQUALS'),
 
@@ -45,12 +46,10 @@ def p_stm_assign_arr(t):
 def p_stm_if(t):
     '''stm : IF cond NEWLINE BEGIN NEWLINE stm END NEWLINE'''
     pass
-    # print(t[1])
 
 def p_stm_if_else(t):
     '''stm : IF cond NEWLINE BEGIN NEWLINE stm END NEWLINE ELSE NEWLINE BEGIN NEWLINE stm END NEWLINE'''
     pass
-    # print(t[1])
 
 def p_stm_loop(t):
     '''stm : REPEAT expr TO expr INC expr NEWLINE BEGIN NEWLINE stm END NEWLINE
@@ -72,6 +71,7 @@ def p_expr_op(t):
             | expr TIMES expr
             | expr DIVIDE expr
             | expr MODULO expr'''
+    print('expr_op')
     t[0] = (t[2], t[1], t[3])
 
 def p_expr_uminus(t):
