@@ -18,6 +18,8 @@ names = {}
 # statement
 def p_stm_assign(t):
     '''stm : ID ASSIGNMENT expr NEWLINE'''
+    print()
+    print(f'assign {t[1]} {t[3]}')
     names[t[1]] = t[3]
     t[0] = (t[2], t[1], t[3])
 
@@ -160,6 +162,7 @@ def p_error(t):
 
 import ply.yacc as yacc
 parser = yacc.yacc()
+
 
 # if __name__ == '__main__':
 #     while True:

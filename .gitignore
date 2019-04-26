@@ -8,5 +8,7 @@ parser/blabla\.py
 
 parser/original\.
 
-parser/*
+parser/
 
+parsetab.py
+parser.out

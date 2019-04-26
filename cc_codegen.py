@@ -44,9 +44,7 @@ switcher = {
     '*':expr_operator_multiply,
     '/':expr_operator_divide
 }
-
-
-def code_generator(node):
+def expr_generator(node):
     action, left, right = node
     if checkTokenType(left) == TokenType.expression:
         left = code_generator(left)
@@ -55,5 +53,5 @@ def code_generator(node):
     return switcher[action](left,right)
 
 
-generated_code = code_generator(root)
+generated_code = expr_generator(root)
 print(generated_code)
