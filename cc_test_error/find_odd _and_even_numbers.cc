@@ -7,14 +7,11 @@ odd := [7]
 even := [7]
 
 repeat 0 to 6 inc 1
-begin
   if num[i] % 2 = 0
-  begin
     even[e] := num[i]
     e := e+1
   end
   else
-  begin
     odd[o] := num[i]
     o := o+1
   end
@@ -26,7 +23,6 @@ o := 0
 
 show "odd numbers are.."
 repeat 0 to 6 inc 1
-begin
   show odd[o]
   o := o+1
 end
@@ -34,7 +30,6 @@ end
 
 show "even numbers are.."
 repeat 0 to 6 inc 1
-begin
   show even[e]
   e := e+1
 end
