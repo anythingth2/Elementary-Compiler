@@ -13,7 +13,13 @@ precedence = (
 )
 
 # dictionary of variable names
-names = {}
+names = {}          # { 'n':3, 'ar':[1,2,3], ... }
+
+
+### Tag type ###
+# Integer     -> ('INT', expr)
+# Variable    -> ('VAR', ID)
+# Array       -> ('ARR', ID, INDEX) *default INDEX = 0
 
 # for generate nasm code
 source_code = ''
@@ -21,20 +27,20 @@ source_code = ''
 # statement
 def p_stm_assign(t):
     '''stm : ID ASSIGNMENT expr NEWLINE'''
-    # print()
-    # print(f'assign {t[1]} {t[3]}')
     names[t[1]] = t[3]
-    t[0] = (t[2], t[1], t[3])
+    t[0] = (t[2], ('VAR', t[1]), t[3])
 
 def p_stm_declare_arr(t):
     '''stm : ID ASSIGNMENT arr NEWLINE'''
-    names[t[1]] = t[3]
+    names[t[1]] = t[3]  # t[3] is list of element from 'arr'
+    t[0] = (t[2], ('ARR', t[1], 0), t[3])
 
 def p_stm_assign_arr(t):
     '''stm : ID L_ARRAY expr R_ARRAY ASSIGNMENT expr NEWLINE'''
     if t[3] > 0:
         try:
             names[t[1]][t[3]] = t[6]
+            t[0] = (t[5], ('ARR', t[1], t[3]), t[6])
         except LookupError:
             print("Line ({}) : Undefined name '{}'".format(t.lineno, t[1]))
             t[0] = None
@@ -87,12 +93,15 @@ def p_expr_group(t):
 
 def p_expr_number(t):
     '''expr : NUMBER'''
-    t[0] = t[1]
+    t[0] = ('INT', t[1])
 
 def p_expr_name(t):
     '''expr : ID'''
     try:
-        t[0] = names[t[1]]
+        if type(names[t[1]]) is list:
+            t[0] = ('ARR', t[1], 0)
+        else:
+            t[0] = ('VAR', t[1])
     except LookupError:
         print("Line ({}) : Undefined name '{}'".format(t.lineno, t[1]))
         t[0] = None
@@ -100,7 +109,7 @@ def p_expr_name(t):
 def p_expr_name_arr(t):
     '''expr : ID L_ARRAY expr R_ARRAY'''
     try:
-        t[0] = names[t[1]][t[3]]
+        t[0] = ('ARR', t[1], t[3])
     except LookupError:
         print("Line ({}) : Undefined name '{}'".format(t.lineno, t[1]))
         t[0] = None
@@ -121,7 +130,7 @@ def p_cond_op(t):
 
 def p_cond_expr(t):
     '''cond : expr'''
-    t[0] = bool(t[1])
+    t[0] = t[1]
 
 def p_cond_group(t):
     '''cond : L_PAREN cond R_PAREN'''
