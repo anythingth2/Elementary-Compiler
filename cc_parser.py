@@ -40,14 +40,16 @@ def p_stm_assign(t):
     t[0] = (t[2], ('VAR', t[1]), t[3])
     # print(inspect.getframeinfo(inspect.currentframe()).function, t, '\n')
 
-
-def p_stm_declare_arr(t):
-    '''stm : ID ASSIGNMENT arr NEWLINE'''
-    names[t[1]] = t[3]  # t[3] is list of element from 'arr'
-    t[0] = (t[2], ('ARR', t[1], 0), t[3])
-
-
 def p_stm_assign_arr(t):
+    '''stm : ID ASSIGNMENT L_ARRAY expr R_ARRAY NEWLINE
+           | ID ASSIGNMENT L_ELEM_ARRAY elem R_ELEM_ARRAY NEWLINE'''
+    if t[3] == '[':
+        names[t[1]] = [0]*t[4][1]
+    elif t[3] == '{':
+        names[t[1]] = t[4]
+    t[0] = (t[2], ('ARR', t[1], 0), names[t[1]])
+
+def p_stm_assign_arr_index(t):
     '''stm : ID L_ARRAY expr R_ARRAY ASSIGNMENT expr NEWLINE'''
     if t[3] > 0:
         try:
@@ -164,26 +166,16 @@ def p_cond_group(t):
     t[0] = t[2]
 
 
-# array
-def p_arr_size(t):
-    'arr : L_ARRAY expr R_ARRAY'
-    t[0] = [0]*t[2]
-
-
-def p_arr_elem(t):
-    'arr : L_ELEM_ARRAY elem R_ELEM_ARRAY'
-    t[0] = t[2]
-
-
 # element
 def p_elem(t):
     '''elem : expr'''
-    t[0] = [t[1]]
+    t[0] = [t[1][1]]
 
 
 def p_elem_many(t):
     '''elem : expr SEPARATOR elem'''
-    t[0] = t[3].insert(0, t[1])
+    t[3].insert(0, t[1][1])
+    t[0] = t[3]
 
 
 # string
@@ -203,6 +195,7 @@ def p_error(t):
     print("Line ({}) : Syntax error at '{}'".format(t.lineno, t.value))
 
 
+import ply.yacc as yacc
 parser = yacc.yacc()
 
 
