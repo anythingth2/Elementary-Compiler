@@ -29,7 +29,7 @@ def p_stm_assign(t):
     '''stm : ID ASSIGNMENT expr NEWLINE'''
     names[t[1]] = t[3]
     t[0] = (t[2], ('VAR', t[1]), t[3])
-    print(inspect.getframeinfo(inspect.currentframe()).function, t, '\n')
+    # print(inspect.getframeinfo(inspect.currentframe()).function, t, '\n')
 
 def p_stm_declare_arr(t):
     '''stm : ID ASSIGNMENT arr NEWLINE'''
