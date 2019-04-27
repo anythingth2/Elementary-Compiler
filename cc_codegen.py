@@ -1,11 +1,3 @@
-import cc_parser
-parser = cc_parser.parser
-
-test_case = 'x := 3+1*99-94/11'
-test_case += '\n'
-
-root = parser.parse(test_case)
-print(root)
 
 
 class TokenType:
@@ -16,11 +8,12 @@ class TokenType:
 
 
 def checkTokenType(token):
-    if isinstance(token, tuple):
+    if len(token) == 3:
         return TokenType.expression
-    elif isinstance(token, int):
+    _type, _ = token
+    if _type == 'INT':
         return TokenType.number
-    elif isinstance(token, str):
+    elif _type == 'STR':
         return TokenType.string
     raise Exception
 
@@ -65,8 +58,3 @@ def expr_generator(node):
     pop     rcx
     pop     rax
     """
-
-
-
-generated_code = expr_generator(root)
-print(generated_code)

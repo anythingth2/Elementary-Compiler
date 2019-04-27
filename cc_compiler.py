@@ -47,20 +47,25 @@ _main:
     pop     rbx
     ret
     section .bss
-    section .data
+    
     """
-    for label, value in variables.items():
-        if isinstance(value, int):
-            value = str(value)
-            var_size = 'dd'
-        elif isinstance(value, str):
-            value = value.replace('\n', '",20,"')
-            value = f'"{value}",0'
-            var_size = 'db'
+    # terminal ('type', value)
+    for label, terminal in variables.items():
+        print(f'terminal {terminal}')
+        var_type = terminal[0]
+        if var_type == 'INT':
+            
+            var_size = 'resd'
+            length = 1
+        elif var_type == 'STR':
+            # value = value.replace('\n', '",20,"')
+            # value = f'"{value}",0'
+            var_size = 'resb'
+            length = 1
         else:
             continue
         footer += f"""
-{label}:    {var_size}  {value}
+{label}:    {var_size}  {length}
 
         """
 
@@ -95,4 +100,7 @@ if __name__ == '__main__':
         tree = cc_parser.parser.parse(line)
 
     generate_tokens_file(filename, code_tokens)
+    print(cc_parser.names)
     generate_nasm_file(filename, cc_parser.source_code, cc_parser.names)
+
+    

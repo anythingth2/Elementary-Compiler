@@ -1,4 +1,6 @@
+import ply.yacc as yacc
 from cc_lexer import tokens
+from cc_codegen import *
 
 # Parsing rules
 precedence = (
@@ -25,15 +27,21 @@ names = {}          # { 'n':3, 'ar':[1,2,3], ... }
 source_code = ''
 
 # statement
+
+
 def p_stm_assign(t):
     '''stm : ID ASSIGNMENT expr NEWLINE'''
+    if checkTokenType(t[3]) == TokenType.expression:
+        expr_generator(t[3])
     names[t[1]] = t[3]
     t[0] = (t[2], ('VAR', t[1]), t[3])
+
 
 def p_stm_declare_arr(t):
     '''stm : ID ASSIGNMENT arr NEWLINE'''
     names[t[1]] = t[3]  # t[3] is list of element from 'arr'
     t[0] = (t[2], ('ARR', t[1], 0), t[3])
+
 
 def p_stm_assign_arr(t):
     '''stm : ID L_ARRAY expr R_ARRAY ASSIGNMENT expr NEWLINE'''
@@ -45,21 +53,26 @@ def p_stm_assign_arr(t):
             print("Line ({}) : Undefined name '{}'".format(t.lineno, t[1]))
             t[0] = None
         except ValueError:
-            print("Line ({}) : Index '{}[{}]' out of range".format(t.lineno, t[1], t[3]))
+            print("Line ({}) : Index '{}[{}]' out of range".format(
+                t.lineno, t[1], t[3]))
             t[0] = None
     else:
-        print("Line ({}) : Index '{}[{}]' out of range".format(t.lineno, t[1], t[3]))
+        print("Line ({}) : Index '{}[{}]' out of range".format(
+            t.lineno, t[1], t[3]))
         t[0] = None
+
 
 def p_stm_if(t):
     '''stm : IF cond NEWLINE BEGIN NEWLINE stm END NEWLINE'''
     pass
     # print(t[1])
 
+
 def p_stm_if_else(t):
     '''stm : IF cond NEWLINE BEGIN NEWLINE stm END NEWLINE ELSE NEWLINE BEGIN NEWLINE stm END NEWLINE'''
     pass
     # print(t[1])
+
 
 def p_stm_loop(t):
     '''stm : REPEAT expr TO expr INC expr NEWLINE BEGIN NEWLINE stm END NEWLINE
@@ -68,6 +81,7 @@ def p_stm_loop(t):
         pass
     if t[5] == 'dec':
         pass
+
 
 def p_stm_print(t):
     '''stm : PRINT str NEWLINE'''
@@ -83,17 +97,21 @@ def p_expr_op(t):
             | expr MODULO expr'''
     t[0] = (t[2], t[1], t[3])
 
+
 def p_expr_uminus(t):
     '''expr : MINUS expr %prec UMINUS'''
     t[0] = (t[1], 0, t[2])
+
 
 def p_expr_group(t):
     '''expr : L_PAREN expr R_PAREN'''
     t[0] = t[2]
 
+
 def p_expr_number(t):
     '''expr : NUMBER'''
     t[0] = ('INT', t[1])
+
 
 def p_expr_name(t):
     '''expr : ID'''
@@ -106,6 +124,7 @@ def p_expr_name(t):
         print("Line ({}) : Undefined name '{}'".format(t.lineno, t[1]))
         t[0] = None
 
+
 def p_expr_name_arr(t):
     '''expr : ID L_ARRAY expr R_ARRAY'''
     try:
@@ -114,7 +133,8 @@ def p_expr_name_arr(t):
         print("Line ({}) : Undefined name '{}'".format(t.lineno, t[1]))
         t[0] = None
     except ValueError:
-        print("Line ({}) : Index '{}[{}]' out of range".format(t.lineno, t[1], t[3]))
+        print("Line ({}) : Index '{}[{}]' out of range".format(
+            t.lineno, t[1], t[3]))
         t[0] = None
 
 
@@ -128,9 +148,11 @@ def p_cond_op(t):
             | cond DOWNWARD_EQUALS cond'''
     t[0] = (t[2], t[1], t[3])
 
+
 def p_cond_expr(t):
     '''cond : expr'''
     t[0] = t[1]
+
 
 def p_cond_group(t):
     '''cond : L_PAREN cond R_PAREN'''
@@ -142,6 +164,7 @@ def p_arr_size(t):
     'arr : L_ARRAY expr R_ARRAY'
     t[0] = [0]*t[2]
 
+
 def p_arr_elem(t):
     'arr : L_ELEM_ARRAY elem R_ELEM_ARRAY'
     t[0] = t[2]
@@ -151,6 +174,7 @@ def p_arr_elem(t):
 def p_elem(t):
     '''elem : expr'''
     t[0] = [t[1]]
+
 
 def p_elem_many(t):
     '''elem : expr SEPARATOR elem'''
@@ -163,6 +187,7 @@ def p_str(t):
            | STRING'''
     t[0] = t[1]
 
+
 def p_str_many(t):
     '''str : str SEPARATOR str'''
     t[0] = (t[2], t[1], t[3])
@@ -172,7 +197,7 @@ def p_str_many(t):
 def p_error(t):
     print("Line ({}) : Syntax error at '{}'".format(t.lineno, t.value))
 
-import ply.yacc as yacc
+
 parser = yacc.yacc()
 
 
