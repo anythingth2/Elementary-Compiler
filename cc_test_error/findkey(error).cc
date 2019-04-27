@@ -10,9 +10,9 @@ repeat 1 to 10 inc 1
 			index := i
 	end
 	i := i+1
-end
+en                      // it should be : end
 
-if found = 1
+if found == 1           //it should be : if found = 1
 	show " Found ", key, " at index ", index
 end
 else

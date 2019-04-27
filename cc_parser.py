@@ -1,5 +1,8 @@
 from cc_lexer import tokens
 
+# for debug
+import inspect
+
 # Parsing rules
 precedence = (
     ('left', 'EQUALS', 'NOT_EQUALS'),
@@ -26,6 +29,7 @@ def p_stm_assign(t):
     '''stm : ID ASSIGNMENT expr NEWLINE'''
     names[t[1]] = t[3]
     t[0] = (t[2], ('VAR', t[1]), t[3])
+    print(inspect.getframeinfo(inspect.currentframe()).function, t, '\n')
 
 def p_stm_declare_arr(t):
     '''stm : ID ASSIGNMENT arr NEWLINE'''
@@ -49,22 +53,25 @@ def p_stm_assign_arr(t):
         t[0] = None
 
 def p_stm_if(t):
-    '''stm : IF cond NEWLINE BEGIN NEWLINE stm END NEWLINE'''
+    '''stm : IF cond NEWLINE
+           | ELSE IF cond NEWLINE'''
     pass
-    # print(t[1])
 
-def p_stm_if_else(t):
-    '''stm : IF cond NEWLINE BEGIN NEWLINE stm END NEWLINE ELSE NEWLINE BEGIN NEWLINE stm END NEWLINE'''
+def p_stm_else(t):
+    '''stm : ELSE NEWLINE'''
     pass
-    # print(t[1])
 
 def p_stm_loop(t):
-    '''stm : REPEAT expr TO expr INC expr NEWLINE BEGIN NEWLINE stm END NEWLINE
-           | REPEAT expr TO expr DEC expr NEWLINE BEGIN NEWLINE stm END NEWLINE'''
+    '''stm : REPEAT expr TO expr INC expr NEWLINE
+           | REPEAT expr TO expr DEC expr NEWLINE'''
     if t[5] == 'inc':
         pass
     if t[5] == 'dec':
         pass
+
+def p_stm_end(t):
+    '''stm : END NEWLINE'''
+    pass
 
 def p_stm_print(t):
     '''stm : PRINT str NEWLINE'''
