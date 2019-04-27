@@ -24,6 +24,9 @@ names = {}          # { 'n':3, 'ar':[1,2,3], ... }
 # Variable    -> ('VAR', ID)
 # Array       -> ('ARR', ID, INDEX) *default INDEX = 0
 
+# for generate nasm code
+source_code = ''
+
 # statement
 def p_stm_assign(t):
     '''stm : ID ASSIGNMENT expr NEWLINE'''
