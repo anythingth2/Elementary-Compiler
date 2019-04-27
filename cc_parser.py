@@ -38,7 +38,7 @@ def p_stm_assign(t):
         expr_generator(t[3])
     names[t[1]] = t[3]
     t[0] = (t[2], ('VAR', t[1]), t[3])
-    print(inspect.getframeinfo(inspect.currentframe()).function, t, '\n')
+    # print(inspect.getframeinfo(inspect.currentframe()).function, t, '\n')
 
 
 def p_stm_declare_arr(t):
