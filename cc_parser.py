@@ -15,11 +15,14 @@ precedence = (
 # dictionary of variable names
 names = {}
 
+# for generate nasm code
+source_code = ''
+
 # statement
 def p_stm_assign(t):
     '''stm : ID ASSIGNMENT expr NEWLINE'''
-    print()
-    print(f'assign {t[1]} {t[3]}')
+    # print()
+    # print(f'assign {t[1]} {t[3]}')
     names[t[1]] = t[3]
     t[0] = (t[2], t[1], t[3])
 

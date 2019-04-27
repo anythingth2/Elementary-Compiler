@@ -1,10 +1,10 @@
-    global   _main
-    extern   _atoi
-    extern   _printf
+    global   main
+    extern   atoi
+    extern   printf
     default  rel
 
     section  .text
-_main:
+main:
     
     push     rbx                    ; we don't ever use this, but it is necesary
                                     ; to align the stack so we can call stuff
@@ -55,13 +55,13 @@ _main:
         xor     rax, rax                ; because printf is varargs
 
         ; Stack is already aligned because we pushed three 8 byte registers
-        call    _printf                  ; printf(format, current_number)
+        call    printf                  ; printf(format, current_number)
 
         pop     rcx                     ; restore caller-save register
         pop     rax                     ; restore caller-save register
 
     pop     rbx
-    ret
+    ; ret
     section .bss
     section .data
 

@@ -44,13 +44,28 @@ switcher = {
     '*':expr_operator_multiply,
     '/':expr_operator_divide
 }
-def expr_generator(node):
+def _expr_generator(node):
     action, left, right = node
     if checkTokenType(left) == TokenType.expression:
-        left = code_generator(left)
+        left = _expr_generator(left)
     if checkTokenType(right) == TokenType.expression:
-        right = code_generator(right)
+        right = _expr_generator(right)
     return switcher[action](left,right)
+def expr_generator(node):
+    header = """
+    push    rax
+    push    rcx
+    push    rdx
+    """
+
+    footer = """
+    mov     []
+
+    pop     rdx
+    pop     rcx
+    pop     rax
+    """
+
 
 
 generated_code = expr_generator(root)

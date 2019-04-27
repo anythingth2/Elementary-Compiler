@@ -1,3 +1,6 @@
+
+rm ./$1
+rm ./$1.o
 echo compiling...
 nasm -fmacho64 ./$1.nasm
 echo assembling...

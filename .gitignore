@@ -12,3 +12,4 @@ parser/
 
 parsetab.py
 parser.out
+bin/*
