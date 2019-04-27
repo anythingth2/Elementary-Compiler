@@ -182,12 +182,13 @@ def p_elem_many(t):
 def p_str(t):
     '''str : expr
            | STRING'''
-    t[0] = t[1]
+    pass
+    # print(t[1])
 
 
 def p_str_many(t):
     '''str : str SEPARATOR str'''
-    t[0] = (t[2], t[1], t[3])
+    # no action
 
 
 # error
