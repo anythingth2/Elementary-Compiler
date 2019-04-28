@@ -58,3 +58,20 @@ def expr_generator(node):
     pop     rcx
     pop     rax
     """
+
+
+
+generated_code = expr_generator(root)
+print(generated_code)
+
+# Code by Jane
+
+def assign_number(terminal):        #terminal('var','name_var','value')
+    return f"""
+    push    r8
+
+    mov     r8,{terminal[2]}
+    mov     [{terminal[1]}],r8
+
+    pop     r8
+    """
