@@ -1,3 +1,5 @@
+import ply.lex as lex
+
 reserved = {
     'show'      : 'PRINT',
     'if'        : 'IF',
@@ -75,20 +77,5 @@ def t_error(t):
     # t.lexer.skip(1)
 
 
-# Build the lexer
-import ply.lex as lex
+# build the lexer
 lexer = lex.lex()
-
-
-# if __name__ == '__main__':
-#     while True:
-#         try:
-#             line = input('cc> ')
-#             lexer.input(line)
-#             while True:
-#                 token = lex.token()
-#                 if not token:
-#                     break
-#                 print(token)
-#         except:
-#             break

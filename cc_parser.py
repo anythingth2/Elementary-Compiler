@@ -2,8 +2,6 @@ import ply.yacc as yacc
 from cc_lexer import tokens
 from cc_codegen import *
 
-# for debug
-import inspect
 
 # Parsing rules
 precedence = (
@@ -196,16 +194,5 @@ def p_error(t):
     print("Line ({}) : Syntax error at '{}'".format(t.lineno, t.value))
 
 
-import ply.yacc as yacc
+# build the parser
 parser = yacc.yacc()
-
-
-# if __name__ == '__main__':
-#     while True:
-#         try:
-#             s = input('cc > ')   # Use raw_input on Python 2
-#             s += '\n'
-#         except EOFError:
-#             break
-#     # parser.parse(s)
-#         print(yacc.parse(s))
