@@ -101,10 +101,9 @@ def compileAndRun(nasm_path):
 
 
 if __name__ == '__main__':
-    _argparser = argparse.ArgumentParser()
-    _argparser.add_argument('path', type=str,)
-    #  open source code
-    args = _argparser.parse_args()
+    file = "cc_test_code/prints.cc"
+    # file = "cc_test_code/findmax.cc"
+    # file = "cc_test_code/ifelse.cc"
 
     if not os.path.isfile(args.path):
         print('file not found')
