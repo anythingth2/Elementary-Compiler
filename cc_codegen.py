@@ -70,8 +70,21 @@ def assign_number(terminal):        #terminal('var','name_var','value')
     return f"""
     push    r8
 
-    mov     r8,{terminal[2]}
-    mov     [{terminal[1]}],r8
+    mov     r8,{terminal[2]}        ;temp=value
+    mov     [{terminal[1]}],r8      ;variable=temp
+
+    pop     r8
+    """
+
+#อาเรย์ที่เก็บต้องเป็นขนาด qd แต่ถ้าไม่ใช่ต้องทำการแก้ไขโค้ด 
+#โดยต้องส่งขนาดของอาเรย์ว่าเป็น dw dd qd 
+#แล้วค่อยทำการเลือกว่าจะให้ค่าใส่ด้วยอะไร และaddress array ต้องเพิ่มทีละเท่าไหร่
+def assign_array(terminal):     #terminal('var','name_var','index','value')
+    return f"""
+    push    r8                                      ;save register
+
+    mov     r8,qword [{terminal[3]}]                ;temp=value
+    mov     [{terminal[1]}+{terminal[2]}*8]         ;array[index]=temp
 
     pop     r8
     """
