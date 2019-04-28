@@ -2,6 +2,9 @@ import ply.yacc as yacc
 from cc_lexer import tokens
 from cc_codegen import *
 
+# for debug
+import inspect
+
 # Parsing rules
 precedence = (
     ('left', 'EQUALS', 'NOT_EQUALS'),
@@ -35,15 +38,18 @@ def p_stm_assign(t):
         expr_generator(t[3])
     names[t[1]] = t[3]
     t[0] = (t[2], ('VAR', t[1]), t[3])
-
-
-def p_stm_declare_arr(t):
-    '''stm : ID ASSIGNMENT arr NEWLINE'''
-    names[t[1]] = t[3]  # t[3] is list of element from 'arr'
-    t[0] = (t[2], ('ARR', t[1], 0), t[3])
-
+    # print(inspect.getframeinfo(inspect.currentframe()).function, t, '\n')
 
 def p_stm_assign_arr(t):
+    '''stm : ID ASSIGNMENT L_ARRAY expr R_ARRAY NEWLINE
+           | ID ASSIGNMENT L_ELEM_ARRAY elem R_ELEM_ARRAY NEWLINE'''
+    if t[3] == '[':
+        names[t[1]] = [0]*t[4][1]
+    elif t[3] == '{':
+        names[t[1]] = t[4]
+    t[0] = (t[2], ('ARR', t[1], 0), names[t[1]])
+
+def p_stm_assign_arr_index(t):
     '''stm : ID L_ARRAY expr R_ARRAY ASSIGNMENT expr NEWLINE'''
     if t[3] > 0:
         try:
@@ -63,25 +69,26 @@ def p_stm_assign_arr(t):
 
 
 def p_stm_if(t):
-    '''stm : IF cond NEWLINE BEGIN NEWLINE stm END NEWLINE'''
+    '''stm : IF cond NEWLINE
+           | ELSE IF cond NEWLINE'''
     pass
-    # print(t[1])
 
-
-def p_stm_if_else(t):
-    '''stm : IF cond NEWLINE BEGIN NEWLINE stm END NEWLINE ELSE NEWLINE BEGIN NEWLINE stm END NEWLINE'''
+def p_stm_else(t):
+    '''stm : ELSE NEWLINE'''
     pass
-    # print(t[1])
 
 
 def p_stm_loop(t):
-    '''stm : REPEAT expr TO expr INC expr NEWLINE BEGIN NEWLINE stm END NEWLINE
-           | REPEAT expr TO expr DEC expr NEWLINE BEGIN NEWLINE stm END NEWLINE'''
+    '''stm : REPEAT expr TO expr INC expr NEWLINE
+           | REPEAT expr TO expr DEC expr NEWLINE'''
     if t[5] == 'inc':
         pass
     if t[5] == 'dec':
         pass
 
+def p_stm_end(t):
+    '''stm : END NEWLINE'''
+    pass
 
 def p_stm_print(t):
     '''stm : PRINT str NEWLINE'''
@@ -159,38 +166,29 @@ def p_cond_group(t):
     t[0] = t[2]
 
 
-# array
-def p_arr_size(t):
-    'arr : L_ARRAY expr R_ARRAY'
-    t[0] = [0]*t[2]
-
-
-def p_arr_elem(t):
-    'arr : L_ELEM_ARRAY elem R_ELEM_ARRAY'
-    t[0] = t[2]
-
-
 # element
 def p_elem(t):
     '''elem : expr'''
-    t[0] = [t[1]]
+    t[0] = [t[1][1]]
 
 
 def p_elem_many(t):
     '''elem : expr SEPARATOR elem'''
-    t[0] = t[3].insert(0, t[1])
+    t[3].insert(0, t[1][1])
+    t[0] = t[3]
 
 
 # string
 def p_str(t):
     '''str : expr
            | STRING'''
-    t[0] = t[1]
+    pass
+    # print(t[1])
 
 
 def p_str_many(t):
     '''str : str SEPARATOR str'''
-    t[0] = (t[2], t[1], t[3])
+    # no action
 
 
 # error
@@ -198,6 +196,7 @@ def p_error(t):
     print("Line ({}) : Syntax error at '{}'".format(t.lineno, t.value))
 
 
+import ply.yacc as yacc
 parser = yacc.yacc()
 
 

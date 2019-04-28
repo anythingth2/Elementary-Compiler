@@ -2,7 +2,6 @@ reserved = {
     'show'      : 'PRINT',
     'if'        : 'IF',
     'else'      : 'ELSE',
-    'begin'     : 'BEGIN',
     'end'       : 'END',
     'repeat'    : 'REPEAT',
     'inc'       : 'INC',
