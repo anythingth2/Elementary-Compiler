@@ -17,26 +17,62 @@ precedence = (
 
 # dictionary of variable names
 names = {}          # { 'n':3, 'ar':[1,2,3], ... }
+indexs = {}          
 
+# counter and stack for asm label and loop index
+lp_ct = 0
+idx_ct = 0
+end_ct = 0
+lp_stack = []
+end_stack = []
+
+# else checker
+else_checker = False 
+
+# if/else/loop match checker
+end_checker = []
+def mark_end(lineno):
+    end_checker.append(lineno)
+
+def unmark_end():
+    try:
+        end_checker.pop()
+
+# jump condition map sign (invert for short if)
+j_cond = {
+    '='  : 'JNE   ',
+    '!=' : 'JE    ',
+    '>'  : 'JLE   ',
+    '>=' : 'JL    ',
+    '<'  : 'JGE   ',
+    '<=' : 'JG    '
+}
+
+def jmp_end():
+    end_stack.append('end'+str(end_ct)+':')
+    end_ct += 1
+    return end_stack[-1][:-1]
+
+def label_end():
+    try:
+        return end_stack.pop()
+    except IndexError:
+
+# for generate nasm code
+source_code = ''
 
 ### Tag type ###
 # Integer     -> ('INT', expr)
 # Variable    -> ('VAR', ID)
 # Array       -> ('ARR', ID, INDEX) *default INDEX = 0
 
-# for generate nasm code
-source_code = ''
-
 # statement
-
-
 def p_stm_assign(t):
     '''stm : ID ASSIGNMENT expr NEWLINE'''
     if checkTokenType(t[3]) == TokenType.expression:
         expr_generator(t[3])
     names[t[1]] = t[3]
     t[0] = (t[2], ('VAR', t[1]), t[3])
-    # print(inspect.getframeinfo(inspect.currentframe()).function, t, '\n')
 
 def p_stm_assign_arr(t):
     '''stm : ID ASSIGNMENT L_ARRAY expr R_ARRAY NEWLINE
@@ -145,13 +181,23 @@ def p_expr_name_arr(t):
 
 # condition
 def p_cond_op(t):
-    '''cond : cond EQUALS cond
-            | cond NOT_EQUALS cond
-            | cond UPWARD cond
-            | cond UPWARD_EQUALS cond
-            | cond DOWNWARD cond
-            | cond DOWNWARD_EQUALS cond'''
+    '''cond : expr EQUALS expr
+            | expr NOT_EQUALS expr
+            | expr UPWARD expr
+            | expr UPWARD_EQUALS expr
+            | expr DOWNWARD expr
+            | expr DOWNWARD_EQUALS expr'''
     t[0] = (t[2], t[1], t[3])
+
+    if t[1][0] == 'INT':
+        t
+    elif t[1][0] == 'VAR':
+        pass
+    elif t[1][0] == 'ARR':
+        pass
+    source_code += 'CMP     ' #+ t[1] + 
+
+    source_code += j_cond[t[2]] + jmp_end() + '\n'
 
 
 def p_cond_expr(t):
@@ -160,7 +206,7 @@ def p_cond_expr(t):
 
 
 def p_cond_group(t):
-    '''cond : L_PAREN cond R_PAREN'''
+    '''cond : L_PAREN expr R_PAREN'''
     t[0] = t[2]
 
 
