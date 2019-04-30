@@ -7,6 +7,7 @@ import os
 
 
 def trav(root, sp):
+    print(root)
     rng = 5
     if root != None:
         if type(root) == tuple:
@@ -21,7 +22,7 @@ def trav(root, sp):
             trav(root[2], sp+1)
         except:
             pass
-            
+
 
 def generate_tokens_file(filename, tokens):
     with open(f'./bin/{filename}.tokens', 'w') as f:
@@ -30,9 +31,9 @@ def generate_tokens_file(filename, tokens):
 
 def generate_nasm_file(filename, code, variables):
     header = """
-    global   main
-    extern   atoi
-    extern   printf
+    global   _main
+    extern   _atoi
+    extern   _printf
     default  rel
 
     section  .text
@@ -43,18 +44,30 @@ _main:
     dec      rdi  
     """
 
+    debugging = ''
+    for label, terminal in variables.items():
+        debugging += f'''
+        mov     rdi, format
+        mov     rsi,[{label}]
+        xor     rax, rax
+        call    _printf
+        '''
+
     footer = """
     pop     rbx
     ret
+    section .data
+format  db  "%d",10,0
     section .bss
     
     """
     # terminal ('type', value)
-    for label, terminal in variables.items():
-        print(f'terminal {terminal}')
-        var_type = terminal[0]
+    for label, var_type in variables.items():
+        # print(f'terminal {terminal}')
+        # var_type = terminal[0]
+      
         if var_type == 'INT':
-            
+
             var_size = 'resd'
             length = 1
         elif var_type == 'STR':
@@ -69,10 +82,10 @@ _main:
 
         """
 
+
+
     with open(f'./bin/{filename}.nasm', 'w') as f:
-        f.write(header + code + footer)
-
-
+        f.write(header + code + debugging + footer)
 
 
 if __name__ == '__main__':
@@ -102,5 +115,3 @@ if __name__ == '__main__':
     generate_tokens_file(filename, code_tokens)
     print(cc_parser.names)
     generate_nasm_file(filename, cc_parser.source_code, cc_parser.names)
-
-    
