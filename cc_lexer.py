@@ -21,8 +21,7 @@ tokens = [
  ] + list(reserved.values())
 
 # Tokens
-t_STRING = r'"[a-zA-Z0-9_;:=\t\r\n\'\\ ]*"'
-# t_STRING = r'"[a-zA-Z0-9_]*"' # inside wrong!
+t_STRING = r'\".*\"'
 
 t_PLUS = r'\+'
 t_MINUS = r'-'
@@ -73,8 +72,8 @@ t_ignore = " \t"
 
 
 def t_error(t):
-    print("Illegal character : '{}'".format(t.value[0]))
-    # t.lexer.skip(1)
+    # print("Illegal character : '{}' at line '{}'".format(t.value[0], t.lineno))
+    t.lexer.skip(1)
 
 
 # build the lexer

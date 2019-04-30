@@ -1,0 +1,35 @@
+num := {10,3,9,4,65,13,74}
+i:= 0
+e := 0
+o := 0
+
+odd := [7]
+even := [7]
+
+repeat 0 to 6 inc 1
+  if num[i] % 2 = 0
+    even[e] := num[i]
+    e := e+1
+  end
+  else
+    odd[o] := num[i]
+    o := o+1
+  end
+  i := i+1
+end
+
+e := 0
+o := 0
+
+show "odd numbers are.."
+repeat 0 to 6 inc 1
+  show odd[o]
+  o := o+1
+end
+
+
+show "even numbers are.."
+repeat 0 to 6 inc 1
+  show even[e]
+  e := e+1
+end
