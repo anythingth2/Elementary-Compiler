@@ -49,10 +49,10 @@ def generate_nasm_file(filename, code, variables):
     """
 
     debugging = ''
-    for label, terminal in variables.items():
+    for label, var_info in variables.items():
         debugging += f'''
         mov     rdi, format
-        mov     rsi,[{label}]
+        mov     rsi,[{var_info['aliase']}]
         xor     rax, rax
         call    {prefix_precedure}printf
         '''
@@ -66,24 +66,20 @@ format  db  "%d",10,0
     
     """
     # terminal ('type', value)
-    for label, var_type in variables.items():
+    for label, var_info in variables.items():
         # print(f'terminal {terminal}')
-        # var_type = terminal[0]
-
+        var_type = var_info['type']
+        length = var_info['length']
         if var_type == 'INT':
-
             var_size = 'resd'
-            length = 1
         elif var_type == 'STR':
             # value = value.replace('\n', '",20,"')
             # value = f'"{value}",0'
             var_size = 'resb'
-            length = 1
         else:
             continue
         footer += f"""
-{label}:    {var_size}  {length}
-
+ {var_info['aliase']}:    {var_size}  {length}
         """
 
     path = f'./bin/{filename}.nasm'

@@ -14,6 +14,8 @@ def isTerminal(token):
 
 
 def checkTokenType(token):
+    
+    
     if len(token) == 3:
         return TokenType.expression
     _type, _ = token
@@ -114,8 +116,13 @@ def expr_generator(expr_root):
     push    rdx
     """
 
-    _expr_generator(expr_root)
-    code = get_expression_code()
+    if isTerminal(expr_root ):
+        code = f'''
+        mov     rdi, {getReferenceFromToken(expr_root)}
+        '''
+    else:
+        _expr_generator(expr_root)
+        code = get_expression_code()
 
     footer = f"""
     mov     rdi, rax
@@ -133,7 +140,7 @@ def expr_generator(expr_root):
 # Code by Jane
 
 def assign_number(var_name, expr_root):  # terminal('var','name_var','value')
-
+    print(f'assign_number {var_name} {expr_root}')
     return expr_generator(expr_root) + f"""
     mov     [{var_name}], rdi
     """

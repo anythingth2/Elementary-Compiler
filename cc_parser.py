@@ -18,7 +18,12 @@ precedence = (
 )
 
 # dictionary of variable names
-names = {}          # { 'n':3, 'ar':[1,2,3], ... }
+# {
+#     'real_label': {'aliase': '...',
+#                    'type': '...',
+#                    'SIZE': 0}
+# }
+names = {}
 
 
 ### Tag type ###
@@ -28,6 +33,8 @@ names = {}          # { 'n':3, 'ar':[1,2,3], ... }
 
 # for generate nasm code
 source_code = ''
+
+
 def emit_sourcecode(code):
     global source_code
     source_code += code
@@ -37,12 +44,12 @@ def emit_sourcecode(code):
 
 def p_stm_assign(t):
     '''stm : ID ASSIGNMENT expr NEWLINE'''
-    t[1] = f'var_{t[1]}'
-    # names[t[1]] = t[3]
     if t[1] not in names:
-        names[t[1]] = 'INT'
-    t[0] = (t[2], ('VAR', t[1]), t[3])
-    emit_sourcecode(cc_codegen.assign_number(t[1],t[3]))
+        names[t[1]] = {'aliase': f'var_{t[1]}',
+                       'type': 'INT',
+                       'length': 1}
+    t[0] = (t[2], ('VAR', names[t[1]]['aliase']), t[3])
+    emit_sourcecode(cc_codegen.assign_number(names[t[1]]['aliase'], t[3]))
 
     # print(inspect.getframeinfo(inspect.currentframe()).function, t, '\n')
 
@@ -113,7 +120,7 @@ def p_expr_op(t):
             | expr TIMES expr
             | expr DIVIDE expr
             | expr MODULO expr'''
-    print('expr_op')
+    print(f'expr_op {t[1]} {t[2]} {t[3]}')
     t[0] = (t[2], t[1], t[3])
 
 
@@ -135,10 +142,10 @@ def p_expr_number(t):
 def p_expr_name(t):
     '''expr : ID'''
     try:
-        if type(names[t[1]]) is list:
-            t[0] = ('ARR', t[1], 0)
+        if names[t[1]]['type'] == 'ARRAY':
+            t[0] = ('ARR', names[t[1]]['aliase'], 0)
         else:
-            t[0] = ('VAR', t[1])
+            t[0] = ('VAR', names[t[1]]['aliase'])
     except LookupError:
         print("Line ({}) : Undefined name '{}'".format(t.lineno, t[1]))
         t[0] = None
