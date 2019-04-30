@@ -101,7 +101,8 @@ def compileAndRun(nasm_path):
 
 
 if __name__ == '__main__':
-    file = "cc_test_code/prints.cc"
+    # file = "cc_test_code/onlyadd.cc"
+    # file = "cc_test_code/prints.cc"
     # file = "cc_test_code/findmax.cc"
     # file = "cc_test_code/ifelse.cc"
 
