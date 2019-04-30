@@ -2,11 +2,13 @@ import cc_lexer
 import cc_parser
 import argparse
 import os
+import platform
 
 # Inorder traversal : Left -> Root -> Right
 
 
 def trav(root, sp):
+    print(root)
     rng = 5
     if root != None:
         if type(root) == tuple:
@@ -21,40 +23,55 @@ def trav(root, sp):
             trav(root[2], sp+1)
         except:
             pass
-            
+
 
 def generate_tokens_file(filename, tokens):
-    with open(f'./bin/{filename}.tokens', 'w') as f:
+    path = f'./bin/{filename}.tokens'
+    with open(path, 'w') as f:
         f.write('\n'.join(tokens))
+    return path
 
 
 def generate_nasm_file(filename, code, variables):
-    header = """
-    global   main
-    extern   atoi
-    extern   printf
+    prefix_precedure = '_' if platform.system() == 'Darwin' else ''
+    header = f"""
+    global   {prefix_precedure}main
+    extern   {prefix_precedure}atoi
+    extern   {prefix_precedure}printf
     default  rel
 
     section  .text
-_main:
+{prefix_precedure}main:
     
     push     rbx                    ; we don't ever use this, but it is necesary
                                     ; to align the stack so we can call stuff
     dec      rdi  
     """
 
+    debugging = ''
+    for label, terminal in variables.items():
+        debugging += f'''
+        mov     rdi, format
+        mov     rsi,[{label}]
+        xor     rax, rax
+        call    {prefix_precedure}printf
+        '''
+
     footer = """
     pop     rbx
     ret
+    section .data
+format  db  "%d",10,0
     section .bss
     
     """
     # terminal ('type', value)
-    for label, terminal in variables.items():
-        print(f'terminal {terminal}')
-        var_type = terminal[0]
+    for label, var_type in variables.items():
+        # print(f'terminal {terminal}')
+        # var_type = terminal[0]
+
         if var_type == 'INT':
-            
+
             var_size = 'resd'
             length = 1
         elif var_type == 'STR':
@@ -69,10 +86,18 @@ _main:
 
         """
 
-    with open(f'./bin/{filename}.nasm', 'w') as f:
-        f.write(header + code + footer)
+    path = f'./bin/{filename}.nasm'
+    with open(path, 'w') as f:
+        f.write(header + code + debugging + footer)
+    return path
 
 
+def compileAndRun(nasm_path):
+    execute_format = 'fmacho64' if platform.system() == 'Darwin' else 'felf64'
+    execute_extension = '' if platform.system == 'Darwin' else 'elf'
+    base_path = '.'.join(nasm_path.split('.')[:-1])
+    os.system(
+        f'nasm -{execute_format} {nasm_path} && gcc {base_path}.o -o {base_path}.{execute_extension} && ./{base_path}.{execute_extension}')
 
 
 if __name__ == '__main__':
@@ -100,7 +125,6 @@ if __name__ == '__main__':
         tree = cc_parser.parser.parse(line)
 
     generate_tokens_file(filename, code_tokens)
-    print(cc_parser.names)
-    generate_nasm_file(filename, cc_parser.source_code, cc_parser.names)
-
-    
+    nasm_path = generate_nasm_file(
+        filename, cc_parser.source_code, cc_parser.names)
+    compileAndRun(nasm_path)

@@ -1,10 +1,12 @@
 import ply.yacc as yacc
 from cc_lexer import tokens
-from cc_codegen import *
+import cc_codegen
+from cc_compiler import trav
 
 
 # Parsing rules
 precedence = (
+    ('left', 'ASSIGNMENT'),
     ('left', 'EQUALS', 'NOT_EQUALS'),
     ('left', 'UPWARD', 'UPWARD_EQUALS', 'DOWNWARD', 'DOWNWARD_EQUALS'),
 
@@ -26,17 +28,24 @@ names = {}          # { 'n':3, 'ar':[1,2,3], ... }
 
 # for generate nasm code
 source_code = ''
+def emit_sourcecode(code):
+    global source_code
+    source_code += code
 
 # statement
 
 
 def p_stm_assign(t):
     '''stm : ID ASSIGNMENT expr NEWLINE'''
-    if checkTokenType(t[3]) == TokenType.expression:
-        expr_generator(t[3])
-    names[t[1]] = t[3]
+    t[1] = f'var_{t[1]}'
+    # names[t[1]] = t[3]
+    if t[1] not in names:
+        names[t[1]] = 'INT'
     t[0] = (t[2], ('VAR', t[1]), t[3])
+    emit_sourcecode(cc_codegen.assign_number(t[1],t[3]))
+
     # print(inspect.getframeinfo(inspect.currentframe()).function, t, '\n')
+
 
 def p_stm_assign_arr(t):
     '''stm : ID ASSIGNMENT L_ARRAY expr R_ARRAY NEWLINE
@@ -46,6 +55,7 @@ def p_stm_assign_arr(t):
     elif t[3] == '{':
         names[t[1]] = t[4]
     t[0] = (t[2], ('ARR', t[1], 0), names[t[1]])
+
 
 def p_stm_assign_arr_index(t):
     '''stm : ID L_ARRAY expr R_ARRAY ASSIGNMENT expr NEWLINE'''
@@ -71,6 +81,7 @@ def p_stm_if(t):
            | ELSE IF cond NEWLINE'''
     pass
 
+
 def p_stm_else(t):
     '''stm : ELSE NEWLINE'''
     pass
@@ -84,9 +95,11 @@ def p_stm_loop(t):
     if t[5] == 'dec':
         pass
 
+
 def p_stm_end(t):
     '''stm : END NEWLINE'''
     pass
+
 
 def p_stm_print(t):
     '''stm : PRINT str NEWLINE'''
@@ -100,6 +113,7 @@ def p_expr_op(t):
             | expr TIMES expr
             | expr DIVIDE expr
             | expr MODULO expr'''
+    print('expr_op')
     t[0] = (t[2], t[1], t[3])
 
 
