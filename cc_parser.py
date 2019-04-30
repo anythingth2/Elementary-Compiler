@@ -1,7 +1,6 @@
 import ply.yacc as yacc
 from cc_lexer import tokens
-import cc_codegen
-from cc_compiler import trav
+from cc_codegen import *
 
 
 # Parsing rules
