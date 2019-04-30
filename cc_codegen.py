@@ -118,7 +118,7 @@ def expr_generator(expr_root):
 
     if isTerminal(expr_root ):
         code = f'''
-        mov     rdi, {getReferenceFromToken(expr_root)}
+        mov     rax, {getReferenceFromToken(expr_root)}
         '''
     else:
         _expr_generator(expr_root)
