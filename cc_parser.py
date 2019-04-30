@@ -83,6 +83,9 @@ def jmp_loop():
 
 # for generate nasm code
 source_code = ''
+def emit_sourcecode(code):
+    global source_code
+    source_code += code
 
 ### Tag type ###
 # Integer     -> ('INT', expr)
@@ -98,11 +101,13 @@ def emit_sourcecode(code):
 # statement
 def p_stm_assign(t):
     '''stm : ID ASSIGNMENT expr NEWLINE'''
-    t[1] = f'var_{t[1]}'
-    # names[t[1]] = t[3]
-    if t[1] not in names:
-        names[t[1]] = 'INT'
-    t[0] = (t[2], ('VAR', t[1]), t[3])
+    if type(names[t[1]]) == list:
+        print("Line ({}) : Syntax error array '{}' expected index".format(t.lineno, t[1][1]))
+        t[0] = None
+    elif checkTokenType(t[3]) == TokenType.expression:
+        expr_generator(t[3])
+        names[t[1]] = t[3]
+        t[0] = (t[2], ('VAR', t[1]), t[3])
 
 
 def p_stm_assign_arr(t):
@@ -117,7 +122,10 @@ def p_stm_assign_arr(t):
 
 def p_stm_assign_arr_index(t):
     '''stm : ID L_ARRAY expr R_ARRAY ASSIGNMENT expr NEWLINE'''
-    if t[3] > 0:
+    if type(names[t[1]]) != list:
+        print("Line ({}) : Syntax error '{}' not array".format(t.lineno, t[1][1]))
+        t[0] = None
+    elif t[3] > 0:
         try:
             names[t[1]][t[3]] = t[6]
             t[0] = (t[5], ('ARR', t[1], t[3]), t[6])
@@ -153,30 +161,28 @@ def p_stm_loop(t):
     '''stm : REPEAT expr TO expr INC expr NEWLINE
            | REPEAT expr TO expr DEC expr NEWLINE'''
     indexs['idx'+str(lp_ct)] = t[2]
-    source_code +=  label_loop()+'\n'+\
-                    '   cmp     idx'+str(lp_ct-1)+', '+str(t[4])+'\n'+\
-                    '   '+j_cond[t[5]]+'      '+jmp_end('lp')+'\n'+\
-                    '   add     idx'+str(lp_ct-1)+', '+str(t[6])+'\n'
-
+    emit_sourcecode(label_loop()+'\n')
+    emit_sourcecode('   cmp     idx'+str(lp_ct-1)+', '+str(t[4])+'\n')
+    emit_sourcecode('   '+j_cond[t[5]]+'      '+jmp_end('lp')+'\n')
+    emit_sourcecode('   add     idx'+str(lp_ct-1)+', '+str(t[6])+'\n')
 
 def p_stm_end(t):
     '''stm : END NEWLINE'''
     end_label = label_end(t.lineno)
     if 'lp' in end_label:
-        source_code +=  '   j       '+jmp_loop()+'\n'
-    source_code +=  '   '+end_label+'\n'
-
+        emit_sourcecode('   j       '+jmp_loop()+'\n')
+    emit_sourcecode('   '+end_label+'\n')
 
 def p_stm_print(t):
     '''stm : PRINT str NEWLINE'''
     strings['msg'+str(str_ct)] = strtemp
     strlens['len'+str(str_ct)] = len(strtemp)
     strtemp = ''
-    source_code +=  'mov    edx, len'+str(str_ct)+'\n'+\
-                    'mov    ecx, msg'+str(str_ct)+'\n'+\
-                    'mov    ebx, 1\n'+\
-                    'mov    eax, 4\n'+\
-                    'int    0x80\n'
+    emit_sourcecode('mov    edx, len'+str(str_ct)+'\n')
+    emit_sourcecode('mov    ecx, msg'+str(str_ct)+'\n')
+    emit_sourcecode('mov    ebx, 1\n')
+    emit_sourcecode('mov    eax, 4\n')
+    emit_sourcecode('int    0x80\n')
     str_ct += 1
 
 
@@ -187,7 +193,6 @@ def p_expr_op(t):
             | expr TIMES expr
             | expr DIVIDE expr
             | expr MODULO expr'''
-    print('expr_op')
     t[0] = (t[2], t[1], t[3])
 
 
@@ -240,15 +245,15 @@ def p_cond_op(t):
             | expr DOWNWARD expr
             | expr DOWNWARD_EQUALS expr'''
     t[0] = (t[2], t[1], t[3])
-    pass
     # if t[1][0] == 'INT':
     #     pass
     # elif t[1][0] == 'VAR':
     #     pass
     # elif t[1][0] == 'ARR':
     #     pass
-    # source_code += 'CMP     ' #+ t[1] + 
-    # source_code += j_cond[t[2]] + jmp_end() + '\n'
+    # source_code += 'CMP     ' #+ t[1] +
+    pass
+    emit_sourcecode(j_cond[t[2]] + jmp_end() + '\n')    
 
 
 def p_cond_expr(t):
@@ -284,11 +289,188 @@ def p_str_many(t):
     '''str : str SEPARATOR str'''
     pass    # no action
 
-
+#---------------------------------------------------------------------------------
 # error
-def p_error(t):
+def p_err(t):
     print("Line ({}) : Syntax error at '{}'".format(t.lineno, t.value))
 
+# error newline
+def p_err_newline(t):
+    '''stm : stm error'''
+    print("Line ({}) : Syntax error expected 'newline'(ENTER) at the end of line".format(t.lineno))
+
+# error assign
+def p_err_id(t):
+    '''stm : error ASSIGNMENT expr NEWLINE'''
+    print("Line ({}) : Syntax error can't assign to '{}'".format(t.lineno, t[1]))
+
+def p_err_assign(t):
+    '''stm : ID error expr NEWLINE'''
+    print("Line ({}) : Syntax error unexpected '{}'".format(t.lineno, t[2]))
+
+def p_err_assign_arr_l(t):
+    '''stm : ID ASSIGNMENT error expr R_ARRAY NEWLINE
+           | ID ASSIGNMENT error elem R_ELEM_ARRAY NEWLINE'''
+    print("Line ({}) : Syntax error unexpected '{}'".format(t.lineno, t[3]))
+
+def p_err_assign_arr_r(t):
+    '''stm : ID ASSIGNMENT L_ARRAY expr error NEWLINE
+           | ID ASSIGNMENT L_ELEM_ARRAY elem error NEWLINE'''
+    print("Line ({}) : Syntax error unexpected '{}'".format(t.lineno, t[5]))
+
+def p_err_arr_index_l(t):
+    '''stm : ID error expr R_ARRAY ASSIGNMENT expr NEWLINE'''
+    print("Line ({}) : Syntax error unexpected '{}'".format(t.lineno, t[2]))
+
+def p_err_arr_index_r(t):
+    '''stm : ID L_ARRAY expr error ASSIGNMENT expr NEWLINE'''
+    print("Line ({}) : Syntax error unexpected '{}'".format(t.lineno, t[4]))
+
+def p_err_arr_index_assign(t):
+    '''stm : ID L_ARRAY expr R_ARRAY error expr NEWLINE'''
+    print("Line ({}) : Syntax error unexpected '{}'".format(t.lineno, t[5]))
+
+# error if
+def p_err_if(t):
+    '''stm : error cond NEWLINE
+           | error IF cond NEWLINE
+           | ELSE error cond NEWLINE'''
+    print("Line ({}) : Syntax error expected 'if' or 'else if' before condition".format(t.lineno))
+
+# error loop
+def p_stm_loop(t):
+    '''stm : REPEAT expr TO expr INC expr NEWLINE
+           | REPEAT expr TO expr DEC expr NEWLINE'''
+    indexs['idx'+str(lp_ct)] = t[2]
+    source_code +=  label_loop()+'\n'+\
+                    '   cmp     idx'+str(lp_ct-1)+', '+str(t[4])+'\n'+\
+                    '   '+j_cond[t[5]]+'      '+jmp_end('lp')+'\n'+\
+                    '   add     idx'+str(lp_ct-1)+', '+str(t[6])+'\n'
+
+
+def p_stm_end(t):
+    '''stm : END NEWLINE'''
+    end_label = label_end(t.lineno)
+    if 'lp' in end_label:
+        source_code +=  '   j       '+jmp_loop()+'\n'
+    source_code +=  '   '+end_label+'\n'
+
+
+def p_stm_print(t):
+    '''stm : PRINT str NEWLINE'''
+    strings['msg'+str(str_ct)] = strtemp
+    strlens['len'+str(str_ct)] = len(strtemp)
+    strtemp = ''
+    source_code +=  'mov    edx, len'+str(str_ct)+'\n'+\
+                    'mov    ecx, msg'+str(str_ct)+'\n'+\
+                    'mov    ebx, 1\n'+\
+                    'mov    eax, 4\n'+\
+                    'int    0x80\n'
+    str_ct += 1
+
+
+# error expression
+def p_expr_op(t):
+    '''expr : expr PLUS expr
+            | expr MINUS expr
+            | expr TIMES expr
+            | expr DIVIDE expr
+            | expr MODULO expr'''
+    print('expr_op')
+    t[0] = (t[2], t[1], t[3])
+
+
+def p_expr_uminus(t):
+    '''expr : MINUS expr %prec UMINUS'''
+    t[0] = (t[1], 0, t[2])
+
+
+def p_expr_group(t):
+    '''expr : L_PAREN expr R_PAREN'''
+    t[0] = t[2]
+
+
+def p_expr_number(t):
+    '''expr : NUMBER'''
+    t[0] = ('INT', t[1])
+
+
+def p_expr_name(t):
+    '''expr : ID'''
+    try:
+        if type(names[t[1]]) is list:
+            t[0] = ('ARR', t[1], 0)
+        else:
+            t[0] = ('VAR', t[1])
+    except LookupError:
+        print("Line ({}) : Undefined name '{}'".format(t.lineno, t[1]))
+        t[0] = None
+
+
+def p_expr_name_arr(t):
+    '''expr : ID L_ARRAY expr R_ARRAY'''
+    try:
+        t[0] = ('ARR', t[1], t[3])
+    except LookupError:
+        print("Line ({}) : Undefined name '{}'".format(t.lineno, t[1]))
+        t[0] = None
+    except ValueError:
+        print("Line ({}) : Index '{}[{}]' out of range".format(
+            t.lineno, t[1], t[3]))
+        t[0] = None
+
+
+# error condition
+def p_cond_op(t):
+    '''cond : expr EQUALS expr
+            | expr NOT_EQUALS expr
+            | expr UPWARD expr
+            | expr UPWARD_EQUALS expr
+            | expr DOWNWARD expr
+            | expr DOWNWARD_EQUALS expr'''
+    t[0] = (t[2], t[1], t[3])
+    # if t[1][0] == 'INT':
+    #     pass
+    # elif t[1][0] == 'VAR':
+    #     pass
+    # elif t[1][0] == 'ARR':
+    #     pass
+    # source_code += 'CMP     ' #+ t[1] + 
+    source_code += j_cond[t[2]] + jmp_end() + '\n'
+    pass
+
+
+def p_cond_expr(t):
+    '''cond : expr'''
+    t[0] = t[1]
+
+
+def p_cond_group(t):
+    '''cond : L_PAREN expr R_PAREN'''
+    t[0] = t[2]
+
+
+# error element
+def p_elem(t):
+    '''elem : expr'''
+    t[0] = [t[1][1]]
+
+
+def p_elem_many(t):
+    '''elem : expr SEPARATOR elem'''
+    t[3].insert(0, t[1][1])
+    t[0] = t[3]
+
+
+# error string
+def p_str(t):
+    '''str : expr
+           | STRING'''
+    strtemp += str(t[1])
+
+def p_str_many(t):
+    '''str : str SEPARATOR str'''
+    pass    # no action
 
 # build the parser
 parser = yacc.yacc()
