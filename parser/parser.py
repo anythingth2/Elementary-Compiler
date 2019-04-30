@@ -11,7 +11,7 @@ tokens = (
 )
 
 # Tokens
-t_STRING = r'\"[a-zA-Z0-9_]*\"'
+t_STRING = r'\".*\"' # r'\"[a-zA-Z0-9_]*\"'
 
 t_PRINT = r'show:'
 t_PLUS = r'\+'
