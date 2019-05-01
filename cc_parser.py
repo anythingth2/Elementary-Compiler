@@ -28,10 +28,36 @@ precedence = (
 names = {}
 
 
+class Variable:
+    def __init__(self, aliase, type, length, init_value = None):
+        self.aliase = aliase
+        self.type = type
+        self.length = length
+        self.init_value = init_value
+
+
+class VariableInitializer:
+    def __init__(self):
+        self.storage = {}
+
+    def register(self, label, variable):
+        self.storage[label] = variable
+
+    def getVariable(self, label):
+        return self.storage[label]
+
+    def getAllVariable(self):
+        return self.storage.values()
+
+
+variable_initializer = VariableInitializer()
+
+
 ### Tag type ###
 # Integer     -> ('INT', expr)
 # Variable    -> ('VAR', ID)
 # Array       -> ('ARR', ID, INDEX) *default INDEX = 0
+
 
 # for generate nasm code
 source_code = ''
@@ -47,33 +73,40 @@ def emit_sourcecode(code):
 def p_stm_assign(t):
     '''stm : ID ASSIGNMENT expr NEWLINE'''
     if t[1] not in names:
-        names[t[1]] = {'aliase': f'var_{t[1]}',
-                       'type': 'INT',
-                       'length': 1}
-    t[0] = (t[2], ('VAR', names[t[1]]['aliase']), t[3])
-    emit_sourcecode(cc_codegen.assign_number(names[t[1]]['aliase'], t[3]))
-
-    # print(inspect.getframeinfo(inspect.currentframe()).function, t, '\n')
+        # names[t[1]] = {'aliase': f'var_{t[1]}',
+        #                'type': 'INT',
+        #                'length': 1}
+        names[t[1]] = t[3]
+        variable_initializer.register(t[1],
+                                      Variable(aliase=f'var_{t[1]}', type='INT', length=1))
+    t[0] = (t[2], ('VAR', names[t[1]]), t[3])
+    emit_sourcecode(cc_codegen.assign_number(
+        variable_initializer.getVariable(t[1]).aliase, t[3]))
 
 
 def p_stm_assign_arr(t):
     '''stm : ID ASSIGNMENT L_ARRAY expr R_ARRAY NEWLINE
            | ID ASSIGNMENT L_ELEM_ARRAY elem R_ELEM_ARRAY NEWLINE'''
     if t[1] not in names:
-        names[t[1]] = {
-            'aliase': f'var_{t[1]}',
-            'type': 'ARR',
-        }
+        # names[t[1]] = {
+        #     'aliase': f'var_{t[1]}',
+        #     'type': 'ARR',
+        # }
         if t[3] == '[':
-            names[t[1]].update({
-                'length': t[4][1]
-            })
-            
+            # names[t[1]].update({
+            #     'length': t[4][1]
+            # })
+            names[t[1]] = t[4]
+            variable_initializer.register(t[1],
+                Variable(aliase=f'var_{t[1]}', type='ARR', length=t[4][1],))
         elif t[3] == '{':
-            names[t[1]].update({
-                'init_value': t[4],
-                'length': len(t[4])
-            })
+            # names[t[1]].update({
+            #     'init_value': t[4],
+            #     'length': len(t[4])
+            # })
+            names[t[1]] = t[4]
+            variable_initializer.register(t[1],
+                Variable(aliase=f'var_{t[1]}', type='ARR', length=len(t[4]), init_value=t[4]))
     print(f'stm_assign_array {t[4]}')
     t[0] = (t[2], ('ARR', t[1], 0), names[t[1]])
 
@@ -100,6 +133,7 @@ def p_stm_assign_arr_index(t):
 def p_stm_if(t):
     '''stm : IF cond NEWLINE
            | ELSE IF cond NEWLINE'''
+
     pass
 
 
