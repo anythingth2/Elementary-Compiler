@@ -1,0 +1,96 @@
+err_01
+#	  '''stm : error ASSIGNMENT expr NEWLINE'''
+- assign ค่าใส่สิ่งที่ไม่ใช่ตัวแปร
+
+err_02
+#	  '''stm : ID error expr NEWLINE'''
+- เครื่องหมาย assign ตัวแปรผิด
+
+err_03 ถึง err_06
+#	  '''stm : ID ASSIGNMENT error expr R_ARRAY NEWLINE
+#            | ID ASSIGNMENT error elem R_ELEM_ARRAY NEWLINE'''
+- ประกาศอาเรย์วงเล็บซ้ายผิด (ทั้งแบบ [ และ {)
+
+err_07 ถึง err_10
+#     '''stm : ID ASSIGNMENT L_ARRAY expr error NEWLINE
+#            | ID ASSIGNMENT L_ELEM_ARRAY elem error NEWLINE'''
+- ประกาศอาเรย์วงเล็บขวาผิด (ทั้งแบบ ] และ })
+
+err_11 ถึง err_12
+#     '''stm : ID error expr R_ARRAY ASSIGNMENT expr NEWLINE'''
+- กำหนดค่าให้อาเรย์แบบบอกตำแหน่ง วงเล็บซ้ายผิด
+
+err_13 ถึง err_14
+#     '''stm : ID L_ARRAY expr error ASSIGNMENT expr NEWLINE'''
+- กำหนดค่าให้อาเรย์แบบบอกตำแหน่ง วงเล็บขวาผิด
+
+err_15
+#     '''stm : ID L_ARRAY expr R_ARRAY error expr NEWLINE'''
+- เครื่องหมาย assign อาเรย์ผิด
+
+err_16 ถึง err_28
+#     '''stm : error cond NEWLINE
+#            | error IF cond NEWLINE
+#            | ELSE error cond NEWLINE'''
+-คำสั่ง 'if' / 'else if' ไม่สมบูรณ์
+
+err_29 ถึง err_32
+#     '''stm : error expr TO expr INC expr NEWLINE
+#            | error expr TO expr DEC expr NEWLINE'''
+-'repeat' ไม่สมบูรณ์
+
+err_33 ถึง err_36
+#     '''stm : REPEAT expr error expr INC expr NEWLINE
+#            | REPEAT expr error expr DEC expr NEWLINE'''
+-'to' ไม่สมบูรณ์
+
+err_37 ถึง err_39
+#     '''stm : REPEAT expr TO expr error expr NEWLINE'''
+-'inc' / 'dec' ไม่สมบูรณ์
+
+err_40
+#     '''stm : error str NEWLINE'''
+-'print' ไม่สมบูรณ์
+
+err_12
+#     '''stm : PRINT error NEWLINE'''
+-string มีปัญหา
+
+#     '''expr : expr error expr'''
+-มีตัวแปลกๆแทรก expression
+
+#     '''expr : error expr %prec UMINUS'''
+-มีตัวแปลกๆนอกจากเครืองหมายลบ แทรกหน้า expression 
+
+#     '''expr : error expr R_PAREN'''
+-วงเล็บซ้าย expression ผิด
+
+#     '''expr : L_PAREN expr error'''
+-วงเล็บขวา expression ผิด
+
+#     '''expr : error'''
+-expression ผิด
+
+#     '''expr : ID error expr R_ARRAY'''
+-อ้างถึงอาเรย์ เช่น a[i] แต่วงเล็บซ้ายผิด
+
+#     '''expr : ID L_ARRAY expr error'''
+-อ้างถึงอาเรย์ เช่น a[i] แต่วงเล็บขวาผิด
+
+#     '''cond : expr error expr'''
+-มีตัวแปลกๆแทรก condition
+
+#     '''cond : error'''
+-condition ผิด
+
+#     '''cond : error expr R_PAREN'''
+-วงเล็บซ้าย condition ผิด
+
+#     '''cond : L_PAREN expr error'''
+-วงเล็บขวา condition ผิด
+
+#     '''elem : expr error elem'''
+-ระหว่างสมาชิกอาเรย์ไม่ใช่ลูกน้ำคั่น
+
+#     '''str : str error str'''
+-ระหว่างสมาชิกตัว print ไม่ใช่ลูกน้ำคั่น
