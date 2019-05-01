@@ -1,7 +1,6 @@
 import ply.yacc as yacc
 from cc_lexer import tokens
 import cc_codegen
-from cc_compiler import trav
 
 
 # Parsing rules
@@ -202,8 +201,9 @@ def p_stm_else(t):
     '''stm : ELSE NEWLINE'''
     global else_checker
     if else_checker:
+        end_label = label_end(t.lineno(1))
         emit_sourcecode('   jmp       '+jmp_end()+'\n')
-        emit_sourcecode('   '+label_end(t.lineno(1))+'\n')
+        emit_sourcecode('   '+end_label+'\n')
         else_checker = False
     else:
         print("Line ({}) : Syntax error found 'else' without 'if' or 'else if'".format(t.lineno(1)))

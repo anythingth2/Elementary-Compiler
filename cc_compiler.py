@@ -3,25 +3,6 @@ import cc_parser
 import argparse
 import os
 import platform
-# Inorder traversal : Left -> Root -> Right
-
-
-def trav(root, sp):
-    print(root)
-    rng = 5
-    if root != None:
-        if type(root) == tuple:
-            print(' '*sp*rng, root[0])
-        else:
-            print(' '*sp*rng, root)
-        try:
-            trav(root[1], sp-1)
-        except:
-            pass
-        try:
-            trav(root[2], sp+1)
-        except:
-            pass
 
 
 def generate_tokens_file(filename, tokens):
