@@ -3,7 +3,6 @@ import cc_parser
 import argparse
 import os
 import platform
-
 # Inorder traversal : Left -> Root -> Right
 
 
@@ -114,7 +113,7 @@ if __name__ == '__main__':
     _argparser.add_argument('path', type=str,)
     #  open source code
     args = _argparser.parse_args()
-
+    
     if not os.path.isfile(args.path):
         print('file not found')
         exit()

@@ -3,8 +3,7 @@ max := 0
 i := 0
 repeat 1 to 10 inc 1
 	if max < num[i]
-	begin
-			max := num[i]
+		max := num[i]
 	end
 	i := i+1
 end
