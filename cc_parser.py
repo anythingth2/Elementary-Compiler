@@ -258,19 +258,19 @@ def p_cond_op(t):
             | expr DOWNWARD expr
             | expr DOWNWARD_EQUALS expr'''
     t[0] = (t[2], t[1], t[3])
+    emit_sourcecode(cc_codegen.expr_generator(t[1]))
+    emit_sourcecode('push   rdi\n')
+    emit_sourcecode(cc_codegen.expr_generator(t[3]))
+    emit_sourcecode('pop    rdx\n')
+    emit_sourcecode('cmp    rdi, rdx\n')
     emit_sourcecode(j_cond[t[2]] + jmp_end('if') + '\n')
-    # pass
 
 def p_cond_expr(t):
     '''cond : expr'''
-    t[0] = t[1]
-    emit_sourcecode(j_cond[t[2]] + jmp_end('if') + '\n')
-
-
-def p_cond_group(t):
-    '''cond : L_PAREN expr R_PAREN'''
-    t[0] = t[2]
-    emit_sourcecode(j_cond[t[2]] + jmp_end('if') + '\n')
+    t[0] = ('!=', t[1], 0)
+    emit_sourcecode(cc_codegen.expr_generator(t[1]))
+    emit_sourcecode('cmp    rdi, 0' + '\n')
+    emit_sourcecode(j_cond['!='] + jmp_end('if') + '\n')
 
 
 # element
