@@ -32,7 +32,7 @@ def generate_tokens_file(filename, tokens):
     return path
 
 
-def generate_nasm_file(filename, code, variables):
+def generate_nasm_file(filename, code, variable_initializer):
     prefix_precedure = '_' if platform.system() == 'Darwin' else ''
     header = f"""
     global   {prefix_precedure}main
@@ -49,11 +49,11 @@ def generate_nasm_file(filename, code, variables):
     """
 
     debugging = ''
-    for label, var_info in variables.items():
-        if var_info['type'] == 'INT':
+    for variable in variable_initializer.getAllVariable():
+        if variable.type == 'INT':
             debugging += f'''
             mov     rdi, format
-            mov     rsi,[{var_info['aliase']}]
+            mov     rsi,[{variable.aliase}]
             xor     rax, rax
             call    {prefix_precedure}printf
             '''
@@ -62,13 +62,13 @@ def generate_nasm_file(filename, code, variables):
     uninit_variables = ''
 
     # terminal ('type', value)
-    for label, var_info in variables.items():
-        aliase = var_info['aliase']
-        var_type = var_info['type']
-        length = var_info['length']
+    for variable in variable_initializer.getAllVariable():
+        aliase = variable.aliase
+        var_type = variable.type
+        length = variable.length
 
-        if 'init_value' in var_info:
-            init_value = var_info['init_value']
+        if variable.init_value != None:
+            init_value = variable.init_value
             if var_type == 'INT':
                 var_size = 'dd'
                 print('unimplemented')
@@ -84,7 +84,6 @@ def generate_nasm_file(filename, code, variables):
             elif var_type == 'ARR':
                 var_size = 'resd'
             uninit_variables += f'{aliase}:     {var_size}  {length}\n'
-
 
     footer = f"""
     pop     rbx
@@ -138,5 +137,5 @@ if __name__ == '__main__':
 
     generate_tokens_file(filename, code_tokens)
     nasm_path = generate_nasm_file(
-        filename, cc_parser.source_code, cc_parser.names)
+        filename, cc_parser.source_code, cc_parser.variable_initializer)
     compileAndRun(nasm_path)
