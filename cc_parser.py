@@ -112,10 +112,10 @@ def p_stm_assign(t):
 
 
 def p_stm_assign_arr(t):
-    '''stm : ID ASSIGNMENT L_ARRAY expr R_ARRAY NEWLINE
+    '''stm : ID ASSIGNMENT L_ARRAY NUMBER R_ARRAY NEWLINE
            | ID ASSIGNMENT L_ELEM_ARRAY elem R_ELEM_ARRAY NEWLINE'''
     if t[3] == '[':
-        names[t[1]] = [0]*t[4][1]
+        names[t[1]] = [0]*t[4]
     elif t[3] == '{':
         names[t[1]] = t[4]
     t[0] = (t[2], ('ARR', t[1], 0), names[t[1]])
@@ -275,13 +275,13 @@ def p_cond_group(t):
 
 # element
 def p_elem(t):
-    '''elem : expr'''
-    t[0] = [t[1][1]]
+    '''elem : NUMBER'''
+    t[0] = [('INT', t[1])]
 
 
 def p_elem_many(t):
-    '''elem : expr SEPARATOR elem'''
-    t[3].insert(0, t[1][1])
+    '''elem : NUMBER SEPARATOR elem'''
+    t[3].insert(0, ('INT', t[1]))
     t[0] = t[3]
 
 
