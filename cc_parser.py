@@ -21,7 +21,9 @@ precedence = (
 # {
 #     'real_label': {'aliase': '...',
 #                    'type': '...',
-#                    'SIZE': 0}
+#                    'length': 0,
+#                    'init_value':...
+#                   }
 # }
 names = {}
 
@@ -57,10 +59,22 @@ def p_stm_assign(t):
 def p_stm_assign_arr(t):
     '''stm : ID ASSIGNMENT L_ARRAY expr R_ARRAY NEWLINE
            | ID ASSIGNMENT L_ELEM_ARRAY elem R_ELEM_ARRAY NEWLINE'''
-    if t[3] == '[':
-        names[t[1]] = [0]*t[4][1]
-    elif t[3] == '{':
-        names[t[1]] = t[4]
+    if t[1] not in names:
+        names[t[1]] = {
+            'aliase': f'var_{t[1]}',
+            'type': 'ARR',
+        }
+        if t[3] == '[':
+            names[t[1]].update({
+                'length': t[4][1]
+            })
+            
+        elif t[3] == '{':
+            names[t[1]].update({
+                'init_value': t[4],
+                'length': len(t[4])
+            })
+    print(f'stm_assign_array {t[4]}')
     t[0] = (t[2], ('ARR', t[1], 0), names[t[1]])
 
 

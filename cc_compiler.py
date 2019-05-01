@@ -50,37 +50,51 @@ def generate_nasm_file(filename, code, variables):
 
     debugging = ''
     for label, var_info in variables.items():
-        debugging += f'''
-        mov     rdi, format
-        mov     rsi,[{var_info['aliase']}]
-        xor     rax, rax
-        call    {prefix_precedure}printf
-        '''
+        if var_info['type'] == 'INT':
+            debugging += f'''
+            mov     rdi, format
+            mov     rsi,[{var_info['aliase']}]
+            xor     rax, rax
+            call    {prefix_precedure}printf
+            '''
 
-    footer = """
+    init_variables = ''
+    uninit_variables = ''
+
+    # terminal ('type', value)
+    for label, var_info in variables.items():
+        aliase = var_info['aliase']
+        var_type = var_info['type']
+        length = var_info['length']
+
+        if 'init_value' in var_info:
+            init_value = var_info['init_value']
+            if var_type == 'INT':
+                var_size = 'dd'
+                print('unimplemented')
+                exit()
+            elif var_type == 'ARR':
+                var_size = 'dd'
+                init_variables += f'{aliase}:   {var_size}  { ", ".join(list(map(lambda v:str(v),init_value)))}\n'
+        else:
+            if var_type == 'INT':
+                var_size = 'resd'
+            elif var_type == 'STR':
+                var_size = 'resb'
+            elif var_type == 'ARR':
+                var_size = 'resd'
+            uninit_variables += f'{aliase}:     {var_size}  {length}\n'
+
+
+    footer = f"""
     pop     rbx
     ret
     section .data
 format  db  "%d",10,0
+{init_variables}
     section .bss
-    
+{uninit_variables}
     """
-    # terminal ('type', value)
-    for label, var_info in variables.items():
-        # print(f'terminal {terminal}')
-        var_type = var_info['type']
-        length = var_info['length']
-        if var_type == 'INT':
-            var_size = 'resd'
-        elif var_type == 'STR':
-            # value = value.replace('\n', '",20,"')
-            # value = f'"{value}",0'
-            var_size = 'resb'
-        else:
-            continue
-        footer += f"""
- {var_info['aliase']}:    {var_size}  {length}
-        """
 
     path = f'./bin/{filename}.nasm'
     with open(path, 'w') as f:
@@ -110,7 +124,9 @@ if __name__ == '__main__':
     filename = basename.split('.')[0]
     with open(path, "r") as f:
         cc_codes = f.readlines()
-
+        cc_codes[-1] += '\n'
+        cc_codes.append('\n')
+    print(cc_codes)
     code_tokens = []
 
     for line in cc_codes:
