@@ -48,38 +48,47 @@ err_37 ถึง err_39
 #     '''stm : REPEAT expr TO expr error expr NEWLINE'''
 -'inc' / 'dec' ไม่สมบูรณ์
 
-err_40
+err_40 ถึง err_41
 #     '''stm : error str NEWLINE'''
 -'print' ไม่สมบูรณ์
 
-err_12
+err_42 ถึง err_48
 #     '''stm : PRINT error NEWLINE'''
 -string มีปัญหา
 
+err_48
 #     '''expr : expr error expr'''
 -มีตัวแปลกๆแทรก expression
 
+err_49
 #     '''expr : error expr %prec UMINUS'''
 -มีตัวแปลกๆนอกจากเครืองหมายลบ แทรกหน้า expression 
 
+err_50 ถึง err_52
 #     '''expr : error expr R_PAREN'''
 -วงเล็บซ้าย expression ผิด
 
+err_53 ถึง err_55
 #     '''expr : L_PAREN expr error'''
 -วงเล็บขวา expression ผิด
 
+err_56
 #     '''expr : error'''
 -expression ผิด
 
+err_57 ถึง err_60
 #     '''expr : ID error expr R_ARRAY'''
 -อ้างถึงอาเรย์ เช่น a[i] แต่วงเล็บซ้ายผิด
 
+err_61 ถึง err_63
 #     '''expr : ID L_ARRAY expr error'''
 -อ้างถึงอาเรย์ เช่น a[i] แต่วงเล็บขวาผิด
 
+err_64
 #     '''cond : expr error expr'''
 -มีตัวแปลกๆแทรก condition
 
+err_65
 #     '''cond : error'''
 -condition ผิด
 
@@ -89,8 +98,9 @@ err_12
 #     '''cond : L_PAREN expr error'''
 -วงเล็บขวา condition ผิด
 
+err_66
 #     '''elem : expr error elem'''
 -ระหว่างสมาชิกอาเรย์ไม่ใช่ลูกน้ำคั่น
-
+err_67
 #     '''str : str error str'''
 -ระหว่างสมาชิกตัว print ไม่ใช่ลูกน้ำคั่น
