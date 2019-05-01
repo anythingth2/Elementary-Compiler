@@ -17,17 +17,18 @@ precedence = (
     ('left', 'L_PAREN', 'R_PAREN', 'L_ARRAY', 'R_ARRAY'),
 )
 
-# dictionary 
+# dictionary
 names = {}      # variable names = { 'n':3, 'ar':[1,2,3], ... }
-indexs = {}     # loop indexs     
+indexs = {}     # loop indexs
 strings = {}    # printed strings
 strlens = {}    # string lengths
 
 # temp before store to strings = {}
 strtemp = ''
 
+
 class Variable:
-    def __init__(self, aliase, type, length, init_value = None):
+    def __init__(self, aliase, type, length=None, init_value=None):
         self.aliase = aliase
         self.type = type
         self.length = length
@@ -54,31 +55,33 @@ variable_initializer = VariableInitializer()
 # counter and stack for asm label and loop index
 str_ct = 0
 lp_ct = 0
-end_ct = {'if':0, 'lp':0}
+end_ct = {'if': 0, 'lp': 0}
 lp_stack = []
 end_stack = []
 
 # else checker
-else_checker = False 
+else_checker = False
 
 # jump condition map sign (invert for short if)
 j_cond = {
-    '='  : 'jne   ',
-    '!=' : 'je    ',
-    '>'  : 'jle   ',
-    '>=' : 'jl    ',
-    '<'  : 'jge   ',
-    '<=' : 'jg    ',
+    '=': 'jne   ',
+    '!=': 'je    ',
+    '>': 'jle   ',
+    '>=': 'jl    ',
+    '<': 'jge   ',
+    '<=': 'jg    ',
 
     'inc': 'jg    ',
     'dec': 'jl    ',
 }
 
-def jmp_end(type): # type is if or lp(loop)
+
+def jmp_end(type):  # type is if or lp(loop)
     global end_ct, end_stack
     end_stack.append('end'+type+str(end_ct[type])+':')
     end_ct[type] += 1
     return end_stack[-1][:-1]
+
 
 def label_end(lineno):
     global end_stack
@@ -88,11 +91,13 @@ def label_end(lineno):
         print("Line ({}) : Syntax error unexpected 'end'".format(lineno))
         parser.errok()
 
+
 def label_loop():
     global lp_ct, lp_stack
     lp_stack.append('lp'+str(lp_ct))
     lp_ct += 1
     return lp_stack[-1]+':'
+
 
 def jmp_loop():
     global lp_stack
@@ -110,39 +115,44 @@ def jmp_loop():
 # for generate nasm code
 source_code = ''
 
+
 def emit_sourcecode(code):
     global source_code
     source_code += code
 
 # statement
+
+
 def p_stm_newline(t):
     '''stm : NEWLINE'''
-    pass # no action, empty line
+    pass  # no action, empty line
+
 
 def p_stm_assign(t):
     '''stm : ID ASSIGNMENT expr NEWLINE'''
     if t[1] in names:
         if type(names[t[1]]) == list:
-            print("Line ({}) : Syntax error array '{}' expected index".format(t.lineno(1), t[1].value))
+            print("Line ({}) : Syntax error array '{}' expected index".format(
+                t.lineno(1), t[1].value))
             t[0] = None
             parser.errok()
-            return 
+            return
 
     print('p_stm_assign ' + t[1])
     # if checkTokenType(t[3]) == TokenType.expression:
     #     expr_generator(t[3])
-    
+
     if t[1] not in names:
         # names[t[1]] = {'aliase': f'var_{t[1]}',
         #                'type': 'INT',
         #                'length': 1}
         # names[t[1]] = t[3]
         variable_initializer.register(t[1],
-                                    Variable(aliase=f'var_{t[1]}', type='INT', length=1))
+                                      Variable(aliase=f'var_{t[1]}', type='INT', length=1))
     # t[0] = (t[2], ('VAR', names[t[1]]), t[3])
     names[t[1]] = t[3]
     t[0] = (t[2], ('VAR', t[1]), t[3])
-    
+
     emit_sourcecode(cc_codegen.assign_number(
         variable_initializer.getVariable(t[1]).aliase, t[3]))
 
@@ -153,13 +163,13 @@ def p_stm_assign_arr(t):
     if t[1] not in names:
         if t[3] == '[':
             names[t[1]] = [0]*t[4]
-            
+
             variable_initializer.register(t[1],
-                Variable(aliase=f'var_{t[1]}', type='ARR', length=t[4]))
+                                          Variable(aliase=f'var_{t[1]}', type='ARR', length=t[4]))
         elif t[3] == '{':
             names[t[1]] = t[4]
             variable_initializer.register(t[1],
-                Variable(aliase=f'var_{t[1]}', type='ARR', length=len(t[4]), init_value=[terminal[1] for terminal in t[4]]))
+                                          Variable(aliase=f'var_{t[1]}', type='ARR', length=len(t[4]), init_value=[terminal[1] for terminal in t[4]]))
     print(f'stm_assign_array {t[4]}')
     t[0] = (t[2], ('ARR', t[1], 0), names[t[1]])
 
@@ -178,7 +188,8 @@ def p_stm_assign_arr_index(t):
             names[t[1]][index] = t[6]
             t[0] = (t[5], ('ARR', t[1], t[3]), t[6])
         except ValueError:
-            print("Line ({}) : Index '{}[{}]' out of range".format(t.lineno(1), t[1], t[3]))
+            print("Line ({}) : Index '{}[{}]' out of range".format(
+                t.lineno(1), t[1], t[3]))
             t[0] = None
             parser.errok()
     except LookupError:
@@ -186,9 +197,11 @@ def p_stm_assign_arr_index(t):
         t[0] = None
         parser.errok()
     except TypeError:
-        print("Line ({}) : Syntax error '{}' is not array".format(t.lineno(1), t[1]))
+        print("Line ({}) : Syntax error '{}' is not array".format(
+            t.lineno(1), t[1]))
         t[0] = None
         parser.errok()
+
 
 def p_stm_if(t):
     '''stm : IF cond NEWLINE
@@ -205,18 +218,24 @@ def p_stm_else(t):
         jmp_end('if')
         else_checker = False
     else:
-        print("Line ({}) : Syntax error found 'else' without 'if' or 'else if'".format(t.lineno(1)))
+        print("Line ({}) : Syntax error found 'else' without 'if' or 'else if'".format(
+            t.lineno(1)))
         t[0] = None
         parser.errok()
+
 
 def p_stm_loop(t):
     '''stm : REPEAT expr TO expr INC expr NEWLINE
            | REPEAT expr TO expr DEC expr NEWLINE'''
-    indexs['idx'+str(lp_ct)] = t[2]
+    index_label = 'idx'+str(lp_ct)
+    indexs[index_label] = t[2]
+    variable_initializer.register(index_label,
+                                  Variable(aliase=index_label, type='INT', length=1, init_value=0))
     emit_sourcecode(label_loop()+'\n')
-    emit_sourcecode('   cmp     idx'+str(lp_ct-1)+', '+str(t[4][1])+'\n')
-    emit_sourcecode('   '+j_cond[t[5]]+'      '+jmp_end('lp')+'\n')
-    emit_sourcecode('   add     idx'+str(lp_ct-1)+', '+str(t[6][1])+'\n')
+    emit_sourcecode(f'  cmp     [{index_label}], dword {t[4][1]}\n')
+    emit_sourcecode(f'  {j_cond[t[5]]}     '+jmp_end('lp')+'\n')
+    emit_sourcecode(f'  add     [{index_label}], dword {t[6][1]}\n')
+
 
 def p_stm_end(t):
     '''stm : END NEWLINE'''
@@ -227,11 +246,18 @@ def p_stm_end(t):
         emit_sourcecode('   '+end_label+'\n')
     # else:
 
+
 def p_stm_print(t):
     '''stm : PRINT str NEWLINE'''
     global strtemp, str_ct
-    strings['msg'+str(str_ct)] = strtemp
-    strlens['len'+str(str_ct)] = len(strtemp)
+    str_label = 'msg'+str(str_ct)
+    strings[str_label] = strtemp
+    variable_initializer.register(str_label,
+                                  Variable(aliase=str_label, type='STR', init_value=strtemp))
+    strlen_label = 'len'+str(str_ct)
+    strlens[strlen_label] = len(strtemp)
+    variable_initializer.register(strlen_label,
+                                  Variable(aliase=strlen_label, type='INT', length=1, init_value=len(strtemp)))
     strtemp = ''
     emit_sourcecode('mov    edx, len'+str(str_ct)+'\n')
     emit_sourcecode('mov    ecx, msg'+str(str_ct)+'\n')
@@ -279,20 +305,24 @@ def p_expr_name(t):
         else:
             t[0] = ('VAR', variable.aliase)
     except LookupError:
-        print("Line ({}) : Undefined name '{}'".format(t.lineno(1), t[1].value))
+        print("Line ({}) : Undefined name '{}'".format(
+            t.lineno(1), t[1].value))
         t[0] = None
         parser.errok()
+
 
 def p_expr_name_arr(t):
     '''expr : ID L_ARRAY expr R_ARRAY'''
     try:
         t[0] = ('ARR', t[1], t[3])
     except LookupError:
-        print("Line ({}) : Undefined name '{}'".format(t.lineno(1), t[1].value))
+        print("Line ({}) : Undefined name '{}'".format(
+            t.lineno(1), t[1].value))
         t[0] = None
         parser.errok()
     except ValueError:
-        print("Line ({}) : Index '{}[{}]' out of range".format(t.lineno(1), t[1].value, t[3].value))
+        print("Line ({}) : Index '{}[{}]' out of range".format(
+            t.lineno(1), t[1].value, t[3].value))
         t[0] = None
         parser.errok()
 
@@ -312,6 +342,7 @@ def p_cond_op(t):
     emit_sourcecode('pop    rdx\n')
     emit_sourcecode('cmp    rdi, rdx\n')
     emit_sourcecode(j_cond[t[2]] + jmp_end('if') + '\n')
+
 
 def p_cond_expr(t):
     '''cond : expr'''
@@ -345,8 +376,10 @@ def p_str_many(t):
     '''str : str SEPARATOR str'''
     pass    # no action
 
-#---------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------
 # error
+
+
 def p_error(t):
     pass
     # print("Line ({}) : Syntax error at '{}'".format(t.lineno, t.value))
@@ -428,9 +461,12 @@ def p_error(t):
 #     parser.errok()
 
 # error expression
+
+
 def p_err_expr_op(t):
     '''expr : expr error expr'''
-    print("Line ({}) : Syntax error unexpected '{}' between expression".format(t.lineno(2), t[2].value))
+    print("Line ({}) : Syntax error unexpected '{}' between expression".format(
+        t.lineno(2), t[2].value))
     parser.errok()
 
 # def p_err_expr_uminus(t):

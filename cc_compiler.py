@@ -70,11 +70,15 @@ def generate_nasm_file(filename, code, variable_initializer):
             init_value = variable.init_value
             if var_type == 'INT':
                 var_size = 'dd'
-                print('unimplemented')
-                exit()
+                init_variables += f'{aliase}:   {var_size}  {init_value}\n'
+            elif var_type == 'STR':
+                var_size = 'db'
+                text = '"' + init_value.replace(r'\n', r'", 20,"') + '",0'
+                init_variables += f'{aliase}:   {var_size}   {text}\n'
             elif var_type == 'ARR':
                 var_size = 'dd'
                 init_variables += f'{aliase}:   {var_size}  { ", ".join(list(map(lambda v:str(v),init_value)))}\n'
+
         else:
             if var_type == 'INT':
                 var_size = 'resd'
@@ -88,7 +92,7 @@ def generate_nasm_file(filename, code, variable_initializer):
     pop     rbx
     ret
     section .data
-format  db  "%d",10,0
+format:  db  "%d",10,0
 {init_variables}
     section .bss
 {uninit_variables}
@@ -113,7 +117,7 @@ if __name__ == '__main__':
     _argparser.add_argument('path', type=str,)
     #  open source code
     args = _argparser.parse_args()
-    
+
     if not os.path.isfile(args.path):
         print('file not found')
         exit()
