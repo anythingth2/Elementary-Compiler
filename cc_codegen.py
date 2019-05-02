@@ -124,10 +124,10 @@ def expr_generator(expr_root):
 ;---------------------- expr start ---------------------
     """
 
-    if isTerminal(expr_root):
-        code = f'''
-    mov     rax, {getReferenceFromToken(expr_root)}
-    '''
+        if isTerminal(expr_root):
+            code = f'''
+        mov     rax, {getReferenceFromToken(expr_root)}
+        '''
         else:
             _expr_generator(expr_root)
             code = get_expression_code()
