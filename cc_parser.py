@@ -198,19 +198,21 @@ def p_stm_if(t):
     else_checker = True
     if t[1] == 'if':
         pop_ct_stack.append(1)
+        cond = t[2]
     else:
         pop_ct_stack[-1] += 1
+        cond = t[3]
         end_label = label_end()
         emit_sourcecode(f'''   jmp       {jmp_end("if")}
     {end_label}
     ''')
     emit_sourcecode(f'''
-{cc_codegen.expr_generator(t[2][1])}
+{cc_codegen.expr_generator(cond[1])}
     push   rdi
-{cc_codegen.expr_generator(t[2][2])}
+{cc_codegen.expr_generator(cond[2])}
     pop    rdx
     cmp    rdi, rdx
-    {j_cond[t[2][0]]}{jmp_end("if")}
+    {j_cond[cond[0]]}{jmp_end("if")}
     ''')
 
 
@@ -286,8 +288,8 @@ def p_stm_print(t):
     variable_initializer.register(strlen_label,
                                   Variable(aliase=strlen_label, type='INT', length=1, init_value=len(strtemp)))
     strtemp = ''
-    emit_sourcecode('mov    edx, len{str_ct}\n')
-    emit_sourcecode('mov    ecx, msg{str_ct}\n')
+    emit_sourcecode(f'mov    edx, len{str_ct}\n')
+    emit_sourcecode(f'mov    ecx, msg{str_ct}\n')
     emit_sourcecode('mov    ebx, 1\n')
     emit_sourcecode('mov    eax, 4\n')
     emit_sourcecode('int    0x80\n')
