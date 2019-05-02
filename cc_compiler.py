@@ -96,8 +96,6 @@ def compileAndRun(nasm_path):
     command = f'nasm -{execute_format} {nasm_path} && gcc {base_path}.o -o {base_path}.{execute_extension} && ./{base_path}.{execute_extension}'
     print(command)
     os.system(command)
-        # os.system(
-    #     f'nasm -felf64 {base_path}.nasm -o {base_path}.exe -l {base_path}.lst')
 
 if __name__ == '__main__':
     _argparser = argparse.ArgumentParser()
