@@ -21,7 +21,12 @@ tokens = [
  ] + list(reserved.values())
 
 # Tokens
-t_STRING = r'\".*\"'
+# t_STRING = r'"[a-zA-Z0-9ก-ฮ ]*"'
+def t_STRING(t):
+    r'\"[a-zA-Z0-9ก-ฮ ]*\"'
+    t.value = t.value[1:-1]
+    return t
+
 
 t_PLUS = r'\+'
 t_MINUS = r'-'

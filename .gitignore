@@ -13,3 +13,4 @@ parser/
 parsetab.py
 parser.out
 bin/*
+\.DS_Store
