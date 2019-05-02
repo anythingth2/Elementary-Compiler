@@ -21,7 +21,7 @@ tokens = [
  ] + list(reserved.values())
 
 # Tokens
-t_STRING = r'\".*\"'
+t_STRING = r'"([^,]*)"'
 
 t_PLUS = r'\+'
 t_MINUS = r'-'
