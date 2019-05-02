@@ -1,0 +1,7 @@
+start := 1
+stop := 10
+op = 2
+sum := 0
+repeat start to stop inc op
+    sum := sum+1
+end

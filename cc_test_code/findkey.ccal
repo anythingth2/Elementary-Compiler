@@ -14,7 +14,6 @@ end
 
 if found = 1
 	show " Found ", key, " at index ", index
-end
 else
 	show key, " is not in this array"
 end

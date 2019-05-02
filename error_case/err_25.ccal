@@ -2,7 +2,6 @@ a := 0
 b:=1
 
 if a
-end
 else i b
     b:=1
 end

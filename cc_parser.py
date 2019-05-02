@@ -59,20 +59,26 @@ pop_ct_stack = []
 lp_stack = []
 end_stack = []
 
+# loop operator add/sub
+loop_op = {
+    'inc':'add     ', 
+    'dec':'sub     '
+}
+
 # else checker
 else_checker = False
 
 # jump condition map sign (invert for short if)
 j_cond = {
-    '=' : 'jne   ',
-    '!=': 'je    ',
-    '>' : 'jle   ',
-    '>=': 'jl    ',
-    '<' : 'jge   ',
-    '<=': 'jg    ',
+    '=' : 'jne     ',
+    '!=': 'je     ',
+    '>' : 'jle     ',
+    '>=': 'jl     ',
+    '<' : 'jge     ',
+    '<=': 'jg     ',
 
-    'inc': 'jg    ',
-    'dec': 'jl    ',
+    'inc': 'jg     ',
+    'dec': 'jl     ',
 }
 
 
@@ -135,7 +141,7 @@ def p_stm_assign(t):
     else:
         if type(names[t[1]]) == list: # require var, not arr
             print("Line ({}) : Syntax error array '{}' expected index".format(
-                t.lineno(1), t[1].value))
+                int(t.lineno(1)/2), t[1].value))
             return None
             # t[0] = None
             # parser.errok()
@@ -177,16 +183,16 @@ def p_stm_assign_arr_index(t):
             t[0] = (t[5], ('ARR', t[1], t[3]), t[6])
         except ValueError:
             print("Line ({}) : Index '{}[{}]' out of range".format(
-                t.lineno(1), t[1], t[3]))
+                int(t.lineno(1)/2), t[1], t[3]))
             t[0] = None
             parser.errok()
     except LookupError:
-        print("Line ({}) : Undefined name '{}'".format(t.lineno(1), t[1]))
+        print("Line ({}) : Undefined name '{}'".format(int(t.lineno(1)/2), t[1]))
         t[0] = None
         parser.errok()
     except TypeError:
         print("Line ({}) : Syntax error '{}' is not array".format(
-            t.lineno(1), t[1]))
+            int(t.lineno(1)/2), t[1]))
         t[0] = None
         parser.errok()
 
@@ -199,19 +205,20 @@ def p_stm_if(t):
     if t[1] == 'if':
         pop_ct_stack.append(1)
         cond = t[2]
-    else:
+    elif t[1] == 'else':
         pop_ct_stack[-1] += 1
         cond = t[3]
         end_label = label_end()
-        emit_sourcecode(f'''   jmp       {jmp_end("if")}
+        emit_sourcecode(f'''
+    jmp     {jmp_end("if")}
     {end_label}
     ''')
     emit_sourcecode(f'''
 {cc_codegen.expr_generator(cond[1])}
-    push   rdi
+    push    rdi
 {cc_codegen.expr_generator(cond[2])}
-    pop    rdx
-    cmp    rdi, rdx
+    pop     rdx
+    cmp     rdx, rdi
     {j_cond[cond[0]]}{jmp_end("if")}
     ''')
 
@@ -221,12 +228,13 @@ def p_stm_else(t):
     global else_checker
     if else_checker:
         end_label = label_end()
-        emit_sourcecode(f'''   jmp       {jmp_end("if")}
-   {end_label}''')
+        emit_sourcecode(f'''
+    jmp     {jmp_end("if")}
+    {end_label}''')
         else_checker = False
     else:
         print("Line ({}) : Syntax error found 'else' without 'if' or 'else if'".format(
-            t.lineno(1)))
+            int(t.lineno(1)/2)))
         t[0] = None
         parser.errok()
 
@@ -239,15 +247,9 @@ def p_stm_loop(t):
     indexs[index_label] = t[2]
     variable_initializer.register(index_label,
                                   Variable(aliase=index_label, type='INT', length=1, init_value=0))
-    # emit_sourcecode(cc_codegen.expr_generator(t[2]))
-    # emit_sourcecode(f'  mov     [{index_label}], dword rdi\n')
-    # emit_sourcecode(f'{label_loop()}\n')
-    # emit_sourcecode(f'  cmp     [{index_label}], dword {t[4][1]}\n')
-    # emit_sourcecode(f'  {j_cond[t[5]]}     {jmp_end("lp")}\n')
-    # emit_sourcecode(f'  add     [{index_label}], dword {t[6][1]}\n')
     emit_sourcecode(f'''
-{cc_codegen.expr_generator(t[2])})
-    mov     [{index_label}], dword rdi
+{cc_codegen.expr_generator(t[2])}
+    mov     [{index_label}], rdi
 {cc_codegen.expr_generator(t[4])}
     push    rdi
 {cc_codegen.expr_generator(t[6])}
@@ -255,9 +257,9 @@ def p_stm_loop(t):
 {label_loop()}
     pop     rdx
     pop     rcx
-    cmp     [{index_label}], dword rcx
+    cmp     [{index_label}], rcx
     {j_cond[t[5]]}{jmp_end("lp")}
-    add     [{index_label}], dword rdx
+    {loop_op[t[5]]}[{index_label}], rdx
     push    rcx
     push    rdx
     ''')
@@ -265,15 +267,21 @@ def p_stm_loop(t):
 
 def p_stm_end(t):
     '''stm : END NEWLINE'''
-    for i in range(pop_ct_stack.pop()):
-        end_label = label_end()
-        if end_label:
-            if 'lp' in end_label:
-                emit_sourcecode(f'\n    jmp     {jmp_loop()}\n    ')
-            emit_sourcecode(f'{end_label}\n')
-        else:
-            print("Line ({}) : Syntax error unexpected 'end'".format(t.lineno(1)))
-            parser.errok()
+    if pop_ct_stack:
+        for i in range(pop_ct_stack.pop()):
+            end_label = label_end()
+            if end_label:
+                if 'lp' in end_label:
+                    emit_sourcecode(f'\n    jmp     {jmp_loop()}\n    ')
+                emit_sourcecode(f'{end_label}\n')
+            else:
+                print("Line ({}) : Syntax error unexpected 'end'".format(int(t.lineno(1)/2)))
+                t[0] = None
+                parser.errok()
+    else:
+        print("Line ({}) : Syntax error unexpected 'end'".format(int(t.lineno(1)/2)))
+        t[0] = None
+        parser.errok()
 
 
 def p_stm_print(t):
@@ -308,7 +316,7 @@ def p_expr_op(t):
 
 def p_expr_uminus(t):
     '''expr : MINUS expr %prec UMINUS'''
-    t[0] = (t[1], 0, t[2])
+    t[0] = (t[1], ('INT', 0), t[2])
 
 
 def p_expr_group(t):
@@ -331,7 +339,7 @@ def p_expr_name(t):
             t[0] = ('VAR', variable.aliase)
     except LookupError:
         print("Line ({}) : Undefined name '{}'".format(
-            t.lineno(1), t[1].value))
+            int(t.lineno(1)/2), t[1]))
         t[0] = None
         parser.errok()
 
@@ -342,12 +350,12 @@ def p_expr_name_arr(t):
         t[0] = ('ARR', t[1], t[3])
     except LookupError:
         print("Line ({}) : Undefined name '{}'".format(
-            t.lineno(1), t[1].value))
+            int(t.lineno(1)/2), t[1].value))
         t[0] = None
         parser.errok()
     except ValueError:
         print("Line ({}) : Index '{}[{}]' out of range".format(
-            t.lineno(1), t[1].value, t[3].value))
+            int(t.lineno(1)/2), t[1].value, t[3].value))
         t[0] = None
         parser.errok()
 
@@ -385,7 +393,7 @@ def p_str(t):
     '''str : expr
            | STRING'''
     global strtemp
-    strtemp += f't[1]'
+    strtemp += f'{t[1]}'
 
 
 def p_str_many(t):
@@ -398,45 +406,45 @@ def p_str_many(t):
 
 def p_error(t):
     pass
-    # print("Line ({}) : Syntax error at '{}'".format(t.lineno, t.value))
+    # print("Line ({}) : Syntax error at '{}'".format(int(t.lineno(1)/2), t.value))
     # parser.errok()
 
 # # error assign
 # def p_err_id(t):
 #     '''stm : error ASSIGNMENT expr NEWLINE'''
-#     print("Line ({}) : Syntax error can't assign to '{}'".format(t.lineno(1), t[1]))
+#     print("Line ({}) : Syntax error can't assign to '{}'".format(int(t.lineno(1)/2), t[1]))
 #     parser.errok()
 
-# def p_err_assign(t):
-#     '''stm : ID error expr NEWLINE'''
-#     print("Line ({}) : Syntax error unexpected '{}'".format(t.lineno(2), t[2]))
-#     parser.errok()
+def p_err_assign(t):
+    '''stm : ID error expr NEWLINE'''
+    print("Line ({}) : Syntax error at '{}'".format(int(t.lineno(2)/2), t[2].value))
+    parser.errok()
 
 # def p_err_assign_arr_l(t):
 #     '''stm : ID ASSIGNMENT error expr R_ARRAY NEWLINE
 #            | ID ASSIGNMENT error elem R_ELEM_ARRAY NEWLINE'''
-#     print("Line ({}) : Syntax error unexpected '{}'".format(t.lineno(3), t[3]))
+#     print("Line ({}) : Syntax error unexpected '{}'".format(int(t.lineno(3)/2), t[3]))
 #     parser.errok()
 
 # def p_err_assign_arr_r(t):
 #     '''stm : ID ASSIGNMENT L_ARRAY expr error NEWLINE
 #            | ID ASSIGNMENT L_ELEM_ARRAY elem error NEWLINE'''
-#     print("Line ({}) : Syntax error unexpected '{}'".format(t.lineno(5), t[5]))
+#     print("Line ({}) : Syntax error unexpected '{}'".format(int(t.lineno(5)/2), t[5]))
 #     parser.errok()
 
 # def p_err_arr_index_l(t):
 #     '''stm : ID error expr R_ARRAY ASSIGNMENT expr NEWLINE'''
-#     print("Line ({}) : Syntax error unexpected '{}'".format(t.lineno(2), t[2]))
+#     print("Line ({}) : Syntax error unexpected '{}'".format(int(t.lineno(2)/2), t[2]))
 #     parser.errok()
 
 # def p_err_arr_index_r(t):
 #     '''stm : ID L_ARRAY expr error ASSIGNMENT expr NEWLINE'''
-#     print("Line ({}) : Syntax error unexpected '{}'".format(t.lineno(4), t[4]))
+#     print("Line ({}) : Syntax error unexpected '{}'".format(int(t.lineno(4)/2), t[4]))
 #     parser.errok()
 
 # def p_err_arr_index_assign(t):
 #     '''stm : ID L_ARRAY expr R_ARRAY error expr NEWLINE'''
-#     print("Line ({}) : Syntax error unexpected '{}'".format(t.lineno(5), t[5]))
+#     print("Line ({}) : Syntax error unexpected '{}'".format(int(t.lineno(5)/2), t[5]))
 #     parser.errok()
 
 # # error if
@@ -444,36 +452,36 @@ def p_error(t):
 #     '''stm : error cond NEWLINE
 #            | error IF cond NEWLINE
 #            | ELSE error cond NEWLINE'''
-#     print("Line ({}) : Syntax error expected 'if' or 'else if' before condition".format(t.lineno(1)))
+#     print("Line ({}) : Syntax error expected 'if' or 'else if' before condition".format(int(t.lineno(1)/2)))
 #     parser.errok()
 
 # # error loop
 # def p_err_loop_repeat(t):
 #     '''stm : error expr TO expr INC expr NEWLINE
 #            | error expr TO expr DEC expr NEWLINE'''
-#     print("Line ({}) : Syntax error expected 'repeat' before".format(t.lineno(1)))
+#     print("Line ({}) : Syntax error expected 'repeat' before".format(int(t.lineno(1)/2)))
 #     parser.errok()
 
 # def p_err_loop_to(t):
 #     '''stm : REPEAT expr error expr INC expr NEWLINE
 #            | REPEAT expr error expr DEC expr NEWLINE'''
-#     print("Line ({}) : Syntax error 'repeat' expected 'to'".format(t.lineno(3)))
+#     print("Line ({}) : Syntax error 'repeat' expected 'to'".format(int(t.lineno(3)/2)))
 #     parser.errok()
 
 # def p_err_loop_step(t):
 #     '''stm : REPEAT expr TO expr error expr NEWLINE'''
-#     print("Line ({}) : Syntax error expected 'inc' or 'dec'".format(t.lineno(5)))
+#     print("Line ({}) : Syntax error expected 'inc' or 'dec'".format(int(t.lineno(5)/2)))
 #     parser.errok()
 
 # # error print
 # def p_err_print(t):
 #     '''stm : error str NEWLINE'''
-#     print("Line ({}) : Syntax error expected 'show' before string".format(t.lineno(1)))
+#     print("Line ({}) : Syntax error expected 'show' before string".format(int(t.lineno(1)/2)))
 #     parser.errok()
 
 # def p_err_string(t):
 #     '''stm : PRINT error NEWLINE'''
-#     print("Line ({}) : Syntax error unexpected '{}' after 'show'".format(t.lineno(2), t[2]))
+#     print("Line ({}) : Syntax error unexpected '{}' after 'show'".format(int(t.lineno(2)/2), t[2]))
 #     parser.errok()
 
 # error expression
@@ -482,73 +490,73 @@ def p_error(t):
 def p_err_expr_op(t):
     '''expr : expr error expr'''
     print("Line ({}) : Syntax error unexpected '{}' between expression".format(
-        t.lineno(2), t[2].value))
+        int(t.lineno(2)/2), t[2].value))
     parser.errok()
 
 # def p_err_expr_uminus(t):
 #     '''expr : error expr %prec UMINUS'''
-#     print("Line ({}) : Syntax error unexpected '{}' before expression".format(t.lineno(1), t[1].value))
+#     print("Line ({}) : Syntax error unexpected '{}' before expression".format(int(t.lineno(1)/2), t[1].value))
 #     parser.errok()
 
 # def p_err_expr_lparen(t):
 #     '''expr : error expr R_PAREN'''
-#     print("Line ({}) : Syntax error unexpected '{}'".format(t.lineno(1), t[1].value))
+#     print("Line ({}) : Syntax error unexpected '{}'".format(int(t.lineno(1)/2), t[1].value))
 #     parser.errok()
 
 # def p_err_expr_rparen(t):
 #     '''expr : L_PAREN expr error'''
-#     print("Line ({}) : Syntax error unexpected '{}'".format(t.lineno(3), t[3].value))
+#     print("Line ({}) : Syntax error unexpected '{}'".format(int(t.lineno(3)/2), t[3].value))
 #     parser.errok()
 
 # # error value
 # def p_err_value(t):
 #     '''expr : error'''
-#     print("Line ({}) : Syntax error unexpected '{}'".format(t.lineno(1), t[1].value))
+#     print("Line ({}) : Syntax error unexpected '{}'".format(int(t.lineno(1)/2), t[1].value))
 #     parser.errok()
 
 # def p_err_name_larr(t):
 #     '''expr : ID error expr R_ARRAY'''
-#     print("Line ({}) : Syntax error unexpected '{}'".format(t.lineno(2), t[2].value))
+#     print("Line ({}) : Syntax error unexpected '{}'".format(int(t.lineno(2)/2), t[2].value))
 #     parser.errok()
 
 # def p_err_name_rarr(t):
 #     '''expr : ID L_ARRAY expr error'''
-#     print("Line ({}) : Syntax error unexpected '{}'".format(t.lineno(4), t[4].value))
+#     print("Line ({}) : Syntax error unexpected '{}'".format(int(t.lineno(4)/2), t[4].value))
 #     parser.errok()
 
 # # error condition
 # def p_cond_op(t):
 #     '''cond : expr error expr'''
-#     print("Line ({}) : Syntax error unexpected '{}' between expression".format(t.lineno(2), t[2].value))
+#     print("Line ({}) : Syntax error unexpected '{}' between expression".format(int(t.lineno(2)/2), t[2].value))
 #     parser.errok()
 
 # def p_cond_expr(t):
 #     '''cond : error'''
-#     print("Line ({}) : Syntax error unexpected '{}'".format(t.lineno(1), t[1].value))
+#     print("Line ({}) : Syntax error unexpected '{}'".format(int(t.lineno(1)/2), t[1].value))
 #     parser.errok()
 
 # def p_err_cond_lparen(t):
 #     '''cond : error expr R_PAREN'''
-#     print("Line ({}) : Syntax error unexpected '{}'".format(t.lineno(1), t[1].value))
+#     print("Line ({}) : Syntax error unexpected '{}'".format(int(t.lineno(1)/2), t[1].value))
 #     parser.errok()
 
 # def p_err_cond_rparen(t):
 #     '''cond : L_PAREN expr error'''
-#     print("Line ({}) : Syntax error unexpected '{}'".format(t.lineno(3), t[3].value))
+#     print("Line ({}) : Syntax error unexpected '{}'".format(int(t.lineno(3)/2), t[3].value))
 #     parser.errok()
 
 
 # # error element
 # def p_err_elem_many(t):
 #     '''elem : expr error elem'''
-#     print("Line ({}) : Syntax error unexpected '{}' between element".format(t.lineno(2), t[2].value))
+#     print("Line ({}) : Syntax error unexpected '{}' between element".format(int(t.lineno(2)/2), t[2].value))
 #     parser.errok()
 
 
 # # error string
 # def p_str_many(t):
 #     '''str : str error str'''
-#     print("Line ({}) : Syntax error unexpected '{}' between element".format(t.lineno(2), t[2].value))
+#     print("Line ({}) : Syntax error unexpected '{}' between element".format(int(t.lineno(2)/2), t[2].value))
 #     parser.errok()
 
 # build the parser
