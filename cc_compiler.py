@@ -32,11 +32,11 @@ def generate_nasm_file(filename, code, variable_initializer):
     for variable in variable_initializer.getAllVariable():
         if variable.type == 'INT':
             debugging += f'''
-            mov     rdi, format
-            mov     rsi,[{variable.aliase}]
-            xor     rax, rax
-            call    {prefix_precedure}printf
-            '''
+    mov     rdi, format
+    mov     rsi,[{variable.aliase}]
+    xor     rax, rax
+    call    {prefix_precedure}printf
+    '''
 
     init_variables = ''
     uninit_variables = ''
@@ -91,7 +91,8 @@ def compileAndRun(nasm_path):
     base_path = '.'.join(nasm_path.split('.')[:-1])
     os.system(
         f'nasm -{execute_format} {nasm_path} && gcc {base_path}.o -o {base_path}.{execute_extension} && ./{base_path}.{execute_extension}')
-
+    # os.system(
+    #     f'nasm -felf64 {base_path}.nasm -o {base_path}.exe -l {base_path}.lst')
 
 if __name__ == '__main__':
     _argparser = argparse.ArgumentParser()
