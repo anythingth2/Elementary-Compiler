@@ -58,18 +58,18 @@ switcher = {
     '-': 'sub   rbx, rax',
     '*': 'imul  rbx, rax',
     '/': '''
-        xchg    rbx, rax
-        cqo
-        mov     rcx, rbx
-        idiv    rcx
-        mov     rbx, rax
+    xchg    rbx, rax
+    cqo
+    mov     rcx, rbx
+    idiv    rcx
+    mov     rbx, rax
     ''',
     'mod': '''
-        xchg    rbx, rax
-        cqo
-        mov     rcx, rbx
-        idiv    rcx
-        mov     rbx, rdx
+    xchg    rbx, rax
+    cqo
+    mov     rcx, rbx
+    idiv    rcx
+    mov     rbx, rdx
     '''
 }
 
@@ -83,8 +83,8 @@ def _expr_generator(node):
         _expr_generator(left)
     else:
         emit_expression_code(f'''
-        mov     rax, {getReferenceFromToken(left)}
-        ''')
+    mov     rax, {getReferenceFromToken(left)}
+    ''')
     emit_expression_code('''
     push    rax
     ''')
@@ -95,14 +95,14 @@ def _expr_generator(node):
     else:
         emit_expression_code(f'''
     mov     rax, {getReferenceFromToken(right)}
-        ''')
+    ''')
     emit_expression_code('''
     pop     rbx
     ''')
     # left is rbx
     # right is rax
     emit_expression_code(f'''
-{switcher[action]}
+    {switcher[action]}
     mov     rax, rbx
     ''')
 
@@ -118,8 +118,8 @@ def expr_generator(expr_root):
 
     if isTerminal(expr_root ):
         code = f'''
-        mov     rax, {getReferenceFromToken(expr_root)}
-        '''
+    mov     rax, {getReferenceFromToken(expr_root)}
+    '''
     else:
         _expr_generator(expr_root)
         code = get_expression_code()
@@ -131,7 +131,6 @@ def expr_generator(expr_root):
     pop     rcx
     pop     rbx
     pop     rax
-
     """
 
     return header + code + footer

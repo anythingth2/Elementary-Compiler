@@ -55,6 +55,7 @@ variable_initializer = VariableInitializer()
 str_ct = 0
 lp_ct = 0
 end_ct = {'if': 0, 'lp': 0}
+pop_ct_stack = []
 lp_stack = []
 end_stack = []
 
@@ -63,11 +64,11 @@ else_checker = False
 
 # jump condition map sign (invert for short if)
 j_cond = {
-    '=': 'jne   ',
+    '=' : 'jne   ',
     '!=': 'je    ',
-    '>': 'jle   ',
+    '>' : 'jle   ',
     '>=': 'jl    ',
-    '<': 'jge   ',
+    '<' : 'jge   ',
     '<=': 'jg    ',
 
     'inc': 'jg    ',
@@ -82,13 +83,12 @@ def jmp_end(type):  # type is if or lp(loop)
     return end_stack[-1][:-1]
 
 
-def label_end(lineno):
+def label_end():
     global end_stack
     try:
         return end_stack.pop()
     except IndexError:
-        print("Line ({}) : Syntax error unexpected 'end'".format(lineno))
-        parser.errok()
+        return None
 
 
 def label_loop():
@@ -194,18 +194,33 @@ def p_stm_assign_arr_index(t):
 def p_stm_if(t):
     '''stm : IF cond NEWLINE
            | ELSE IF cond NEWLINE'''
-    # compare and jump are in cond
     global else_checker
     else_checker = True
+    if t[1] == 'if':
+        pop_ct_stack.append(1)
+    else:
+        pop_ct_stack[-1] += 1
+        end_label = label_end()
+        emit_sourcecode(f'''   jmp       {jmp_end("if")}
+    {end_label}
+    ''')
+    emit_sourcecode(f'''
+{cc_codegen.expr_generator(t[2][1])}
+    push   rdi
+{cc_codegen.expr_generator(t[2][2])}
+    pop    rdx
+    cmp    rdi, rdx
+    {j_cond[t[2][0]]}{jmp_end("if")}
+    ''')
 
 
 def p_stm_else(t):
     '''stm : ELSE NEWLINE'''
     global else_checker
     if else_checker:
-        end_label = label_end(t.lineno(1))
-        emit_sourcecode('   jmp       {jmp_end()}\n')
-        emit_sourcecode('   {end_label}\n')
+        end_label = label_end()
+        emit_sourcecode(f'''   jmp       {jmp_end("if")}
+   {end_label}''')
         else_checker = False
     else:
         print("Line ({}) : Syntax error found 'else' without 'if' or 'else if'".format(
@@ -217,6 +232,7 @@ def p_stm_else(t):
 def p_stm_loop(t):
     '''stm : REPEAT expr TO expr INC expr NEWLINE
            | REPEAT expr TO expr DEC expr NEWLINE'''
+    pop_ct_stack.append(1)
     index_label = f'idx{lp_ct}'
     indexs[index_label] = t[2]
     variable_initializer.register(index_label,
@@ -227,29 +243,35 @@ def p_stm_loop(t):
     # emit_sourcecode(f'  cmp     [{index_label}], dword {t[4][1]}\n')
     # emit_sourcecode(f'  {j_cond[t[5]]}     {jmp_end("lp")}\n')
     # emit_sourcecode(f'  add     [{index_label}], dword {t[6][1]}\n')
-    emit_sourcecode(cc_codegen.expr_generator(t[2]))
-    emit_sourcecode(f'  mov     [{index_label}], dword rdi\n')
-    emit_sourcecode(cc_codegen.expr_generator(t[4]))
-    emit_sourcecode('   push    rdi\n') # compared value
-    emit_sourcecode(cc_codegen.expr_generator(t[6]))
-    emit_sourcecode('   push    rdi\n') # inc/dec
-    emit_sourcecode(f'{label_loop()}\n')
-    emit_sourcecode('   pop     rdx\n') # get inc/dec
-    emit_sourcecode('   pop     rcx\n') # get compared value
-    emit_sourcecode(f'  cmp     [{index_label}], dword rcx\n')
-    emit_sourcecode(f'  {j_cond[t[5]]}     {jmp_end("lp")}\n')
-    emit_sourcecode(f'  add     [{index_label}], dword rdx\n')
-    emit_sourcecode('   push    rcx\n') # reserve inc/dec
-    emit_sourcecode('   push    rdx\n') # reserve compared value
+    emit_sourcecode(f'''
+{cc_codegen.expr_generator(t[2])})
+    mov     [{index_label}], dword rdi
+{cc_codegen.expr_generator(t[4])}
+    push    rdi
+{cc_codegen.expr_generator(t[6])}
+    push    rdi
+{label_loop()}
+    pop     rdx
+    pop     rcx
+    cmp     [{index_label}], dword rcx
+    {j_cond[t[5]]}{jmp_end("lp")}
+    add     [{index_label}], dword rdx
+    push    rcx
+    push    rdx
+    ''')
 
 
 def p_stm_end(t):
     '''stm : END NEWLINE'''
-    end_label = label_end(t.lineno(1))
-    if end_label:
-        if 'lp' in end_label:
-            emit_sourcecode(f'   jmp       {jmp_loop()}\n')
-        emit_sourcecode(f'   {end_label}\n')
+    for i in range(pop_ct_stack.pop()):
+        end_label = label_end()
+        if end_label:
+            if 'lp' in end_label:
+                emit_sourcecode(f'\n    jmp     {jmp_loop()}\n    ')
+            emit_sourcecode(f'{end_label}\n')
+        else:
+            print("Line ({}) : Syntax error unexpected 'end'".format(t.lineno(1)))
+            parser.errok()
 
 
 def p_stm_print(t):
@@ -337,20 +359,11 @@ def p_cond_op(t):
             | expr DOWNWARD expr
             | expr DOWNWARD_EQUALS expr'''
     t[0] = (t[2], t[1], t[3])
-    emit_sourcecode(cc_codegen.expr_generator(t[1]))
-    emit_sourcecode('push   rdi\n')
-    emit_sourcecode(cc_codegen.expr_generator(t[3]))
-    emit_sourcecode('pop    rdx\n')
-    emit_sourcecode('cmp    rdi, rdx\n')
-    emit_sourcecode(f'{j_cond[t[2]]}{jmp_end("if")}\n')
 
 
 def p_cond_expr(t):
     '''cond : expr'''
-    t[0] = ('!=', t[1], 0)
-    emit_sourcecode(cc_codegen.expr_generator(t[1]))
-    emit_sourcecode('cmp    rdi, 0\n')
-    emit_sourcecode('{j_cond["!="]}{jmp_end("if")}\n')
+    t[0] = ('!=', t[1], ('INT',0))
 
 
 # element
