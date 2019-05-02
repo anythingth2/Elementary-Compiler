@@ -1,8 +1,0 @@
-a := 1
-b := 3
-if a < b
-    a := a+b
-end 
-else
-    b := 19
-end

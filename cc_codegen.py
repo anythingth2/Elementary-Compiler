@@ -12,25 +12,25 @@ class TokenType:
 
 
 def isTerminal(token):
-    return len(token) == 2
+    if token: return len(token) == 2
 
 
 def checkTokenType(token):
-
-    if len(token) == 3:
-        return TokenType.expression
-    _type, _ = token
-    if _type == 'INT':
-        return TokenType.number
-    elif _type == 'STR':
-        return TokenType.string
-    elif _type == 'VAR':
-        return TokenType.variable
-    raise Exception
+    if token: 
+        if len(token) == 3:
+            return TokenType.expression
+        _type, _ = token
+        if _type == 'INT':
+            return TokenType.number
+        elif _type == 'STR':
+            return TokenType.string
+        elif _type == 'VAR':
+            return TokenType.variable
+        # raise Exception
 
 
 def getReferenceFromToken(token):
-    return f'[{token[1]}]' if token[0] == 'VAR' else token[1]
+    if token: return f'[{token[1]}]' if token[0] == 'VAR' else token[1]
 
 
 expr_workspace = ''
@@ -49,102 +49,108 @@ def get_expression_code():
 
 
 def expr_assignment(left, right):
-    if checkTokenType(left) == TokenType.expression:
-        left = _expr_generator(left)
+    if left:
+        if checkTokenType(left) == TokenType.expression:
+            left = _expr_generator(left)
 
-    if checkTokenType(right) == TokenType.expression:
-        right = _expr_generator(right)
+    if right:
+        if checkTokenType(right) == TokenType.expression:
+            right = _expr_generator(right)
 
 
 switcher = {
     ':=': expr_assignment,
-    '+': 'add   rbx, rax',
-    '-': 'sub   rbx, rax',
-    '*': 'imul  rbx, rax',
+    '+': 'add     rbx, rax',
+    '-': 'sub     rbx, rax',
+    '*': 'imul     rbx, rax',
     '/': '''
-    xchg    rbx, rax
+    xchg     rbx, rax
     cqo
     mov     rcx, rbx
-    idiv    rcx
+    idiv     rcx
     mov     rbx, rax
     ''',
     'mod': '''
-    xchg    rbx, rax
+    xchg     rbx, rax
     cqo
     mov     rcx, rbx
-    idiv    rcx
+    idiv     rcx
     mov     rbx, rdx
     '''
 }
 
 
 def _expr_generator(node):
+    if node:
+        action, left, right = node
 
-    action, left, right = node
-
-    if checkTokenType(left) == TokenType.expression:
-        # switcher[action](left, right)
-        _expr_generator(left)
-    else:
-        emit_expression_code(f'''
+        if checkTokenType(left) == TokenType.expression:
+            # switcher[action](left, right)
+            _expr_generator(left)
+        else:
+            emit_expression_code(f'''
     mov     rax, {getReferenceFromToken(left)}
     ''')
-    emit_expression_code('''
+        emit_expression_code('''
     push    rax
     ''')
-    if checkTokenType(right) == TokenType.expression:
+        if checkTokenType(right) == TokenType.expression:
 
         # switcher[action](left, right)
-        _expr_generator(right)
-    else:
-        emit_expression_code(f'''
+            _expr_generator(right)
+        else:
+            emit_expression_code(f'''
     mov     rax, {getReferenceFromToken(right)}
     ''')
-    emit_expression_code('''
+        emit_expression_code('''
     pop     rbx
     ''')
     # left is rbx
     # right is rax
-    emit_expression_code(f'''
+        emit_expression_code(f'''
     {switcher[action]}
     mov     rax, rbx
     ''')
 
 
 def expr_generator(expr_root):
-
-    header = f"""
+    if expr_root:
+        header = f"""
+;------------ expr start ------------
     push    rax
     push    rbx
     push    rcx
     push    rdx
+;---------------------- expr start ---------------------
     """
 
     if isTerminal(expr_root):
         code = f'''
     mov     rax, {getReferenceFromToken(expr_root)}
     '''
-    else:
-        _expr_generator(expr_root)
-        code = get_expression_code()
+        else:
+            _expr_generator(expr_root)
+            code = get_expression_code()
 
-    footer = f"""
+        footer = f"""
     mov     rdi, rax
-
+;---------------------- expr end ----------------------
     pop     rdx
     pop     rcx
     pop     rbx
     pop     rax
+;------------ expr end ------------
     """
 
-    return header + code + footer
+        return header + code + footer
 
 
 # Code by Jane
 
 def assign_number(var_name, expr_root):  # terminal('var','name_var','value')
-    print(f'assign_number {var_name} {expr_root}')
-    return expr_generator(expr_root) + f"""
+    if var_name and expr_root:
+        print(f'assign_number {var_name} {expr_root}')
+        return expr_generator(expr_root) + f"""
     mov     [{var_name}], rdi
     """
 
@@ -154,7 +160,8 @@ def assign_number(var_name, expr_root):  # terminal('var','name_var','value')
 
 
 def assign_array(terminal):  # terminal('var','name_var','index','value')
-    return f"""
+    if terminal:
+        return f"""
     push    r8                                      ;save register
 
     mov     r8,qword [{terminal[3]}]                ;temp=value

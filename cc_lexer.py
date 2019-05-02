@@ -23,9 +23,11 @@ tokens = [
 # Tokens
 # t_STRING = r'"[a-zA-Z0-9ก-ฮ ]*"'
 def t_STRING(t):
-    r'\"[a-zA-Z0-9ก-ฮ ]*\"'
+    # r'\"[a-zA-Z0-9ก-ฮ ]*\"'
+    r'"([^,]*)"'
     t.value = t.value[1:-1]
     return t
+
 
 
 t_PLUS = r'\+'

@@ -1,0 +1,7 @@
+n := 10
+ad := n + 2
+su := n - 2
+mu := n * 2
+di := n / 2
+mo := n mod 2
+res := ((ad + su + mu) * di) - mo
