@@ -1,3 +1,5 @@
+import platform
+import cc_parser
 expression_count = 0
 
 
@@ -14,8 +16,7 @@ def isTerminal(token):
 
 
 def checkTokenType(token):
-    
-    
+
     if len(token) == 3:
         return TokenType.expression
     _type, _ = token
@@ -38,11 +39,14 @@ expr_workspace = ''
 def emit_expression_code(code):
     global expr_workspace
     expr_workspace += code
+
+
 def get_expression_code():
     global expr_workspace
     t = expr_workspace
     expr_workspace = ''
     return t
+
 
 def expr_assignment(left, right):
     if checkTokenType(left) == TokenType.expression:
@@ -116,7 +120,7 @@ def expr_generator(expr_root):
     push    rdx
     """
 
-    if isTerminal(expr_root ):
+    if isTerminal(expr_root):
         code = f'''
     mov     rax, {getReferenceFromToken(expr_root)}
     '''
@@ -158,3 +162,52 @@ def assign_array(terminal):  # terminal('var','name_var','index','value')
 
     pop     r8
     """
+
+
+printf_count = 0
+
+
+def printf_generator(variable_initializer, params):
+    save_registers = set(['rax', 'rcx'])
+    argument_registers = ['rsi', 'rdx', 'rcx', 'r8', 'r9']
+    message_format = ''
+    source_code = ''
+    for param in params:
+        if isinstance(param, str):
+            message_format += param
+        else:
+            message_format += '%d'
+            argument = argument_registers.pop(0)
+            save_registers.add(argument)
+            source_code += expr_generator(param)
+            source_code += f'''
+            mov     {argument}, rdi
+            '''
+    global printf_count
+    format_label = f'printf_{printf_count}'
+    printf_count += 1
+    variable_initializer.register(format_label, cc_parser.Variable(
+        aliase=format_label, type='STR', init_value=message_format))
+
+    source_code += f'''
+        mov     rdi, {format_label}
+        xor     rax, rax
+        call    {'_' if platform.system() == 'Darwin' else ''}printf
+
+    '''
+    
+    for register in save_registers:
+        source_code = f'''
+        push    {register}
+{source_code}
+        pop     {register}
+        '''
+    if len(save_registers) % 2 == 1:
+        register = list(save_registers)[0]
+        source_code = f'''
+        push    {register}
+{source_code}
+        pop     {register}
+        '''
+
+    return source_code

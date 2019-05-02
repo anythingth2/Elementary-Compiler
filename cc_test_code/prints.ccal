@@ -1,2 +1,2 @@
-show "Hello ", "my ", "name ", "is", " ", "Don" 
-show "Yeah\n\nyhyhyh"
+x := 123
+show "Helaaaa", "world " ,x, " WORD"

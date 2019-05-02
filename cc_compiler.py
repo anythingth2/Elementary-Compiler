@@ -25,7 +25,9 @@ def generate_nasm_file(filename, code, variable_initializer):
     
     push     rbx                    ; we don't ever use this, but it is necesary
                                     ; to align the stack so we can call stuff
-    dec      rdi  
+;    dec      rdi  
+
+ 
     """
 
     debugging = ''
@@ -54,7 +56,7 @@ def generate_nasm_file(filename, code, variable_initializer):
                 init_variables += f'{aliase}:   {var_size}  {init_value}\n'
             elif var_type == 'STR':
                 var_size = 'db'
-                text = '"' + init_value.replace(r'\n', r'", 20,"') + '",0'
+                text = '"' + init_value.replace(r'\n', r'", 20,"') + '",10,0'
                 init_variables += f'{aliase}:   {var_size}   {text}\n'
             elif var_type == 'ARR':
                 var_size = 'dd'
@@ -70,8 +72,8 @@ def generate_nasm_file(filename, code, variable_initializer):
             uninit_variables += f'{aliase}:     {var_size}  {length}\n'
 
     footer = f"""
-    pop     rbx
-    ret
+  pop     rbx
+   ret
     section .data
 format:  db  "%d",10,0
 {init_variables}
@@ -81,17 +83,20 @@ format:  db  "%d",10,0
 
     path = f'./bin/{filename}.nasm'
     with open(path, 'w') as f:
-        f.write(header + code + debugging + footer)
+        # f.write(header + code  + footer)
+        f.write(header + code +debugging + footer)
     return path
 
 
 def compileAndRun(nasm_path):
     execute_format = 'fmacho64' if platform.system() == 'Darwin' else 'felf64'
-    execute_extension = '' if platform.system == 'Darwin' else 'elf'
+    execute_extension = '' if platform.system() == 'Darwin' else 'elf'
     base_path = '.'.join(nasm_path.split('.')[:-1])
-    os.system(
-        f'nasm -{execute_format} {nasm_path} && gcc {base_path}.o -o {base_path}.{execute_extension} && ./{base_path}.{execute_extension}')
-    # os.system(
+
+    command = f'nasm -{execute_format} {nasm_path} && gcc {base_path}.o -o {base_path}.{execute_extension} && ./{base_path}.{execute_extension}'
+    print(command)
+    os.system(command)
+        # os.system(
     #     f'nasm -felf64 {base_path}.nasm -o {base_path}.exe -l {base_path}.lst')
 
 if __name__ == '__main__':
@@ -110,7 +115,7 @@ if __name__ == '__main__':
         cc_codes = f.readlines()
         cc_codes[-1] += '\n'
         cc_codes.append('\n')
-    print(cc_codes)
+
     code_tokens = []
 
     for line in cc_codes:

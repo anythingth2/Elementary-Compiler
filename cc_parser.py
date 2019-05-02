@@ -64,11 +64,11 @@ else_checker = False
 
 # jump condition map sign (invert for short if)
 j_cond = {
-    '=' : 'jne   ',
+    '=': 'jne   ',
     '!=': 'je    ',
-    '>' : 'jle   ',
+    '>': 'jle   ',
     '>=': 'jl    ',
-    '<' : 'jge   ',
+    '<': 'jge   ',
     '<=': 'jg    ',
 
     'inc': 'jg    ',
@@ -129,11 +129,11 @@ def p_stm_newline(t):
 
 def p_stm_assign(t):
     '''stm : ID ASSIGNMENT expr NEWLINE'''
-    if t[1] not in names: # for declare
+    if t[1] not in names:  # for declare
         variable_initializer.register(t[1],
                                       Variable(aliase=f'var_{t[1]}', type='INT', length=1))
     else:
-        if type(names[t[1]]) == list: # require var, not arr
+        if type(names[t[1]]) == list:  # require var, not arr
             print("Line ({}) : Syntax error array '{}' expected index".format(
                 t.lineno(1), t[1].value))
             return None
@@ -276,26 +276,6 @@ def p_stm_end(t):
             parser.errok()
 
 
-def p_stm_print(t):
-    '''stm : PRINT str NEWLINE'''
-    global strtemp, str_ct
-    str_label = f'msg{str_ct}'
-    strings[str_label] = strtemp
-    variable_initializer.register(str_label,
-                                  Variable(aliase=str_label, type='STR', init_value=strtemp))
-    strlen_label = f'len{str_ct}'
-    strlens[strlen_label] = len(strtemp)
-    variable_initializer.register(strlen_label,
-                                  Variable(aliase=strlen_label, type='INT', length=1, init_value=len(strtemp)))
-    strtemp = ''
-    emit_sourcecode(f'mov    edx, len{str_ct}\n')
-    emit_sourcecode(f'mov    ecx, msg{str_ct}\n')
-    emit_sourcecode('mov    ebx, 1\n')
-    emit_sourcecode('mov    eax, 4\n')
-    emit_sourcecode('int    0x80\n')
-    str_ct += 1
-
-
 # expression
 def p_expr_op(t):
     '''expr : expr PLUS expr
@@ -365,7 +345,7 @@ def p_cond_op(t):
 
 def p_cond_expr(t):
     '''cond : expr'''
-    t[0] = ('!=', t[1], ('INT',0))
+    t[0] = ('!=', t[1], ('INT', 0))
 
 
 # element
@@ -380,17 +360,46 @@ def p_elem_many(t):
     t[0] = t[3]
 
 
+def p_stm_print(t):
+    '''stm : PRINT msg NEWLINE'''
+    emit_sourcecode(cc_codegen.printf_generator(variable_initializer, t[2]))
+
+    # global strtemp, str_ct
+    # str_label = f'msg{str_ct}'
+    # strings[str_label] = strtemp
+    # variable_initializer.register(str_label,
+    #                               Variable(aliase=str_label, type='STR', init_value=strtemp))
+    # strlen_label = f'len{str_ct}'
+    # strlens[strlen_label] = len(strtemp)
+    # variable_initializer.register(strlen_label,
+    #                               Variable(aliase=strlen_label, type='INT', length=1, init_value=len(strtemp)))
+    # strtemp = ''
+    # emit_sourcecode(f'mov    edx, len{str_ct}\n')
+    # emit_sourcecode(f'mov    ecx, msg{str_ct}\n')
+    # emit_sourcecode('mov    ebx, 1\n')
+    # emit_sourcecode('mov    eax, 4\n')
+    # emit_sourcecode('int    0x80\n')
+    # str_ct += 1
+
 # string
+
+
+def p_msg(t):
+    '''msg : str SEPARATOR msg
+           | str '''
+    if len(t) == 2:
+        t[0] = [t[1]]
+    else:
+        t[0] = [t[1]] + t[3]
+
+
 def p_str(t):
     '''str : expr
            | STRING'''
     global strtemp
-    strtemp += f't[1]'
+    strtemp += f'{t[1]}'
+    t[0] = t[1]
 
-
-def p_str_many(t):
-    '''str : str SEPARATOR str'''
-    pass    # no action
 
 # ---------------------------------------------------------------------------------
 # error
