@@ -44,11 +44,13 @@ def get_expression_code():
     return t
 
 def expr_assignment(left, right):
-    if checkTokenType(left) == TokenType.expression:
-        left = _expr_generator(left)
+    if left:
+        if checkTokenType(left) == TokenType.expression:
+            left = _expr_generator(left)
 
-    if checkTokenType(right) == TokenType.expression:
-        right = _expr_generator(right)
+    if right:
+        if checkTokenType(right) == TokenType.expression:
+            right = _expr_generator(right)
 
 
 switcher = {
@@ -107,8 +109,8 @@ def _expr_generator(node):
 
 
 def expr_generator(expr_root):
-
-    header = f"""
+    if expr_root:
+        header = f"""
 ;------------ expr start ------------
     push    rax
     push    rbx
@@ -117,15 +119,15 @@ def expr_generator(expr_root):
 ;---------------------- expr start ---------------------
     """
 
-    if isTerminal(expr_root):
-        code = f'''
+        if isTerminal(expr_root):
+            code = f'''
     mov     rax, {getReferenceFromToken(expr_root)}
     '''
-    else:
-        _expr_generator(expr_root)
-        code = get_expression_code()
+        else:
+            _expr_generator(expr_root)
+            code = get_expression_code()
 
-    footer = f"""
+        footer = f"""
     mov     rdi, rax
 ;---------------------- expr end ----------------------
     pop     rdx
@@ -135,14 +137,15 @@ def expr_generator(expr_root):
 ;------------ expr end ------------
     """
 
-    return header + code + footer
+        return header + code + footer
 
 
 # Code by Jane
 
 def assign_number(var_name, expr_root):  # terminal('var','name_var','value')
-    print(f'assign_number {var_name} {expr_root}')
-    return expr_generator(expr_root) + f"""
+    if var_name and expr_root:
+        print(f'assign_number {var_name} {expr_root}')
+        return expr_generator(expr_root) + f"""
     mov     [{var_name}], rdi
     """
 
