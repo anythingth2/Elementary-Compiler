@@ -1,34 +1,34 @@
 import ply.lex as lex
 
 reserved = {
-    'show'      : 'PRINT',
-    'show_hex'  : 'PRINT_HEX',
-    'if'        : 'IF',
-    'else'      : 'ELSE',
-    'end'       : 'END',
-    'repeat'    : 'REPEAT',
-    'inc'       : 'INC',
-    'dec'       : 'DEC',
-    'to'        : 'TO',
-    'mod'       : 'MODULO'
- }
+    'show': 'PRINT',
+    'show_hex': 'PRINT_HEX',
+    'if': 'IF',
+    'else': 'ELSE',
+    'end': 'END',
+    'repeat': 'REPEAT',
+    'inc': 'INC',
+    'dec': 'DEC',
+    'to': 'TO',
+    'mod': 'MODULO'
+}
 
-tokens = [   
-    'ID', 'NUMBER', 'STRING', 'ASSIGNMENT', 
+tokens = [
+    'ID', 'NUMBER', 'STRING', 'ASSIGNMENT',
     'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'L_PAREN', 'R_PAREN',
-    'L_ARRAY', 'R_ARRAY', 'L_ELEM_ARRAY', 'R_ELEM_ARRAY', 'SEPARATOR', 
+    'L_ARRAY', 'R_ARRAY', 'L_ELEM_ARRAY', 'R_ELEM_ARRAY', 'SEPARATOR',
     'EQUALS', 'NOT_EQUALS', 'UPWARD', 'UPWARD_EQUALS', 'DOWNWARD', 'DOWNWARD_EQUALS',
     'NEWLINE'
- ] + list(reserved.values())
+] + list(reserved.values())
 
 # Tokens
 
+
 def t_STRING(t):
-    r'\"[a-zA-Z0-9ก-ฮ ]*\"'
-    # r'"([^,]*)"'
+    # r'\"[a-zA-Z0-9ก-ฮ ]*\"'
+    r'"([^,"]*)"'
     t.value = t.value[1:-1]
     return t
-
 
 
 t_PLUS = r'\+'
@@ -52,10 +52,12 @@ t_R_ARRAY = r'\]'
 t_L_ELEM_ARRAY = r'\{'
 t_R_ELEM_ARRAY = r'\}'
 
+
 def t_ID(t):
-     r'[a-zA-Z_][a-zA-Z_0-9]*'
-     t.type = reserved.get(t.value, 'ID')    # check for reserved words
-     return t
+    r'[a-zA-Z_][a-zA-Z_0-9]*'
+    t.type = reserved.get(t.value, 'ID')    # check for reserved words
+    return t
+
 
 def t_NUMBER(t):
     r'0x[0-9a-fA-f]+|\d+'
@@ -68,6 +70,7 @@ def t_NUMBER(t):
         print("Integer value too large %d", t.value)
         t.value = 0
     return t
+
 
 def t_NEWLINE(t):
     r'\n+'

@@ -56,7 +56,7 @@ def generate_nasm_file(filename, code, variable_initializer):
                 init_variables += f'{aliase}:   {var_size}  {init_value}\n'
             elif var_type == 'STR':
                 var_size = 'db'
-                text = '"' + init_value.replace(r'\n', r'", 20,"') + '",10,0'
+                text = '"' + init_value.replace(r'\n', r'", 10,"') + '",10,0'
                 init_variables += f'{aliase}:   {var_size}   {text}\n'
             elif var_type == 'ARR':
                 var_size = 'dq'
