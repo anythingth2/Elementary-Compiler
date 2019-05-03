@@ -1,0 +1,9 @@
+num := 0
+repeat 1 to 10 inc 1
+    repeat 1 to 10 inc 1
+        repeat 1 to 10 inc 1
+            num := num + 1
+            show num
+        end
+    end
+end

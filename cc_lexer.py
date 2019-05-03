@@ -18,8 +18,8 @@ tokens = [
     'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'L_PAREN', 'R_PAREN',
     'L_ARRAY', 'R_ARRAY', 'L_ELEM_ARRAY', 'R_ELEM_ARRAY', 'SEPARATOR',
     'EQUALS', 'NOT_EQUALS', 'UPWARD', 'UPWARD_EQUALS', 'DOWNWARD', 'DOWNWARD_EQUALS',
-    'NEWLINE'
-] + list(reserved.values())
+    'NEWLINE', 'EOT'
+ ] + list(reserved.values())
 
 # Tokens
 
@@ -29,7 +29,6 @@ def t_STRING(t):
     r'"([^,"]*)"'
     t.value = t.value[1:-1]
     return t
-
 
 t_PLUS = r'\+'
 t_MINUS = r'-'
@@ -52,6 +51,7 @@ t_R_ARRAY = r'\]'
 t_L_ELEM_ARRAY = r'\{'
 t_R_ELEM_ARRAY = r'\}'
 
+t_EOT = r'\^c'
 
 def t_ID(t):
     r'[a-zA-Z_][a-zA-Z_0-9]*'
@@ -75,6 +75,7 @@ def t_NUMBER(t):
 def t_NEWLINE(t):
     r'\n+'
     t.lexer.lineno += t.value.count("\n")
+    t.value = '<newline>'
     return t
 
 

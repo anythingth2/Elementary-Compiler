@@ -1,8 +1,9 @@
-a := 1
+a := 0
+show a
 if a > 0
-	show "Positive"
+	show "Positive ", a
 else if a < 0
-	show "Negative"
+	show "Negative ", a
 else
-	show "Zero"
+	show "Zero ", a
 end

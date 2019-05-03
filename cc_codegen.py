@@ -138,12 +138,11 @@ def expr_generator(expr_root):
     if expr_root:
         save_register = set(['rax'])
         header = f"""
-;------------ expr start ------------
+;---------------------- expr start ---------------------
     push    rax
     push    rbx
     push    rcx
     push    rdx
-;---------------------- expr start ---------------------
     """
         
  
@@ -165,12 +164,11 @@ def expr_generator(expr_root):
             mov     rdi, rax
             '''
         footer = f"""
-;---------------------- expr end ----------------------
     pop     rdx
     pop     rcx
     pop     rbx
     pop     rax
-;------------ expr end ------------
+;---------------------- expr end ----------------------
     """
 
 
