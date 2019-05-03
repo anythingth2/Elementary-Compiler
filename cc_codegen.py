@@ -116,12 +116,11 @@ def _expr_generator(node):
 def expr_generator(expr_root):
     if expr_root:
         header = f"""
-;------------ expr start ------------
+;---------------------- expr start ---------------------
     push    rax
     push    rbx
     push    rcx
     push    rdx
-;---------------------- expr start ---------------------
     """
 
         if isTerminal(expr_root):
@@ -134,12 +133,12 @@ def expr_generator(expr_root):
 
         footer = f"""
     mov     rdi, rax
-;---------------------- expr end ----------------------
+
     pop     rdx
     pop     rcx
     pop     rbx
     pop     rax
-;------------ expr end ------------
+;---------------------- expr end ----------------------
     """
 
         return header + code + footer
@@ -182,7 +181,7 @@ def printf_generator(variable_initializer, params):
     for param in params:
         if isinstance(param, str):
             message_format += param
-        else:
+        elif param:
             message_format += '%d'
             argument = argument_registers.pop(0)
             save_registers.add(argument)
