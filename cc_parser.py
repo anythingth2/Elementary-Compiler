@@ -153,6 +153,7 @@ def p_stm_assign(t):
             return None
             # t[0] = None
             # parser.errok()
+    print(f'stm_assign {t[1]} {t[3]}')
     names[t[1]] = t[3]
     t[0] = (t[2], ('VAR', t[1]), t[3])
     emit_sourcecode(cc_codegen.assign_number(
@@ -338,7 +339,8 @@ def p_expr_name(t):
 def p_expr_name_arr(t):
     '''expr : ID L_ARRAY expr R_ARRAY'''
     try:
-        t[0] = ('ARR', t[1], t[3])
+        variable = variable_initializer.getVariable(t[1])
+        t[0] = ('ARR', variable.aliase, t[3])
     except LookupError:
         print("Line ({}) : Undefined name '{}'".format(
             int(t.lineno(1)/2), t[1].value))

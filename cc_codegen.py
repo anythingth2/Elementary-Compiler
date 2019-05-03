@@ -9,28 +9,45 @@ class TokenType:
     number = 'number'
     string = 'string'
     variable = 'variable'
+    array = 'array'
 
 
 def isTerminal(token):
-    if token: return len(token) == 2
+    return len(token) != 3 or token[0] == 'ARR'
 
 
 def checkTokenType(token):
-    if token: 
-        if len(token) == 3:
+    if token:
+        if len(token) == 3 and  token[0] != 'ARR':
             return TokenType.expression
-        _type, _ = token
+        _type = token[0]
         if _type == 'INT':
             return TokenType.number
         elif _type == 'STR':
             return TokenType.string
         elif _type == 'VAR':
             return TokenType.variable
+        elif _type == 'ARR':
+            return TokenType.array
         # raise Exception
 
 
 def getReferenceFromToken(token):
-    if token: return f'[{token[1]}]' if token[0] == 'VAR' else token[1]
+    if token:
+        return f'[{token[1]}]' if token[0] == 'VAR' else token[1]
+
+
+def getRegerenceFromArray(token):
+    _, var_name, index_root = token
+    print(f'getRefArray {token}')
+    source_code = ''
+    source_code += expr_generator(index_root)
+
+    source_code += f'''
+    mov     r12, {var_name}
+    mov     rax, qword [r12 + rdi * 4]
+    '''
+    return source_code
 
 
 expr_workspace = ''
@@ -88,20 +105,25 @@ def _expr_generator(node):
             # switcher[action](left, right)
             _expr_generator(left)
         else:
-            emit_expression_code(f'''
-    mov     rax, {getReferenceFromToken(left)}
-    ''')
+            if checkTokenType(left) == TokenType.array:
+                emit_expression_code(getRegerenceFromArray(left))
+            else:
+                emit_expression_code(f'''
+        mov     rax, {getReferenceFromToken(left)}
+        ''')
         emit_expression_code('''
     push    rax
     ''')
         if checkTokenType(right) == TokenType.expression:
 
-        # switcher[action](left, right)
             _expr_generator(right)
         else:
-            emit_expression_code(f'''
-    mov     rax, {getReferenceFromToken(right)}
-    ''')
+            if checkTokenType(right) == TokenType.array:
+                emit_expression_code(getRegerenceFromArray(right))
+            else:
+                emit_expression_code(f'''
+        mov     rax, {getReferenceFromToken(right)}
+        ''')
         emit_expression_code('''
     pop     rbx
     ''')
@@ -114,6 +136,7 @@ def _expr_generator(node):
 
 
 def expr_generator(expr_root):
+    print(f'expr_generator {expr_root}')
     if expr_root:
         header = f"""
 ;------------ expr start ------------
@@ -125,9 +148,16 @@ def expr_generator(expr_root):
     """
 
         if isTerminal(expr_root):
-            code = f'''
-        mov     rax, {getReferenceFromToken(expr_root)}
-        '''
+            if checkTokenType(expr_root) == TokenType.array:
+
+                print(f'expr_generator_terminal array')
+                code = getRegerenceFromArray(expr_root)
+            else:
+
+                print(f'expr_generator_terminal ')
+                code = f'''
+            mov     rax, {getReferenceFromToken(expr_root)}
+            '''
         else:
             _expr_generator(expr_root)
             code = get_expression_code()
@@ -174,7 +204,7 @@ def assign_array(terminal):  # terminal('var','name_var','index','value')
 printf_count = 0
 
 
-def printf_generator(variable_initializer, params, isHex = False):
+def printf_generator(variable_initializer, params, isHex=False):
     save_registers = set(['rax', 'rcx'])
     argument_registers = ['rsi', 'rdx', 'rcx', 'r8', 'r9']
     message_format = ''
@@ -183,7 +213,7 @@ def printf_generator(variable_initializer, params, isHex = False):
         if isinstance(param, str):
             message_format += param
         else:
-            message_format += '%x' if isHex else '%d'  
+            message_format += '%x' if isHex else '%d'
             argument = argument_registers.pop(0)
             save_registers.add(argument)
             source_code += expr_generator(param)
@@ -202,7 +232,7 @@ def printf_generator(variable_initializer, params, isHex = False):
         call    {'_' if platform.system() == 'Darwin' else ''}printf
 
     '''
-    
+
     for register in save_registers:
         source_code = f'''
         push    {register}
