@@ -61,7 +61,6 @@ def generate_nasm_file(filename, code, variable_initializer):
             elif var_type == 'ARR':
                 var_size = 'dq'
                 init_variables += f'{aliase}:   {var_size}  { ", ".join(list(map(lambda v:str(v),init_value)))}\n'
-
         else:
             if var_type == 'INT':
                 var_size = 'resq'

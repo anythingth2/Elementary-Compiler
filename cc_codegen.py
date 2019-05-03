@@ -212,7 +212,7 @@ def printf_generator(variable_initializer, params, isHex=False):
         if isinstance(param, str):
             message_format += param
         else:
-            message_format += '%x' if isHex else '%d'
+            message_format += '0x%x' if isHex else '%d'
             argument = argument_registers.pop(0)
             save_registers.add(argument)
             source_code += expr_generator(param)
@@ -229,7 +229,6 @@ def printf_generator(variable_initializer, params, isHex=False):
         mov     rdi, {format_label}
         xor     rax, rax
         call    {'_' if platform.system() == 'Darwin' else ''}printf
-
     '''
 
     for register in save_registers:
