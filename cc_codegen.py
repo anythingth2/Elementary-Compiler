@@ -44,7 +44,7 @@ def getRegerenceFromArray(token):
 
     source_code += f'''
     mov     r12, {var_name}
-    mov     rax, qword [r12 + rdi * 4]
+    mov     rax, qword [r12 + rdi * 8]
     '''
     return source_code
 
@@ -197,7 +197,7 @@ def assign_array(var_name, index_root, expr_root):
 {expr_generator(expr_root)}
     pop     r11
     mov     r12, {var_name}
-    mov     [r12 + r11 * 4], qword rdi
+    mov     [r12 + r11 * 8], qword rdi
     '''
 
 printf_count = 0

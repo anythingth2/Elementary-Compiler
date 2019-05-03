@@ -1,4 +1,7 @@
-a := 9
+a := 0
 repeat 1 to 5 inc 1
     a := a + 1
+    show "a",a
 end
+
+show "end "

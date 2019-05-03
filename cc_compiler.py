@@ -52,23 +52,23 @@ def generate_nasm_file(filename, code, variable_initializer):
         if variable.init_value != None:
             init_value = variable.init_value
             if var_type == 'INT':
-                var_size = 'dd'
+                var_size = 'dq'
                 init_variables += f'{aliase}:   {var_size}  {init_value}\n'
             elif var_type == 'STR':
                 var_size = 'db'
                 text = '"' + init_value.replace(r'\n', r'", 20,"') + '",10,0'
                 init_variables += f'{aliase}:   {var_size}   {text}\n'
             elif var_type == 'ARR':
-                var_size = 'dd'
+                var_size = 'dq'
                 init_variables += f'{aliase}:   {var_size}  { ", ".join(list(map(lambda v:str(v),init_value)))}\n'
 
         else:
             if var_type == 'INT':
-                var_size = 'resd'
+                var_size = 'resq'
             elif var_type == 'STR':
                 var_size = 'resb'
             elif var_type == 'ARR':
-                var_size = 'resd'
+                var_size = 'resq'
             uninit_variables += f'{aliase}:     {var_size}  {length}\n'
 
     footer = f"""
