@@ -35,6 +35,7 @@ class Variable:
 
 
 class VariableInitializer:
+    
     def __init__(self):
         self.storage = {}
 
@@ -45,7 +46,14 @@ class VariableInitializer:
         return self.storage[label]
 
     def getAllVariable(self):
-        return self.storage.values()
+        priority = {
+        'STR': 1,
+        'INT':2,
+        'ARR' : 3
+        }
+        variables =list( self.storage.values())
+        variables.sort(key = lambda var: priority[var.type])
+        return variables
 
 
 variable_initializer = VariableInitializer()
@@ -170,10 +178,13 @@ def p_stm_assign_arr(t):
 
 def p_stm_assign_arr_index(t):
     '''stm : ID L_ARRAY expr R_ARRAY ASSIGNMENT expr NEWLINE'''
+    print(f'stm_assign_arr_index {t[3]} {t[6]}')
     try:
+        global index
         names[t[1]][0]
         if t[3][0] == 'INT':
             index = t[3][1]
+            
         elif t[3][0] == 'VAR':
             index = names[t[3][1]][1]
         elif t[3][0] == 'ARR':
