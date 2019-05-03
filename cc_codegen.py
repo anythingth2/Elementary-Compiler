@@ -136,6 +136,7 @@ def _expr_generator(node):
 
 def expr_generator(expr_root):
     if expr_root:
+        save_register = set(['rax'])
         header = f"""
 ;------------ expr start ------------
     push    rax
@@ -144,22 +145,26 @@ def expr_generator(expr_root):
     push    rdx
 ;---------------------- expr start ---------------------
     """
+        
+ 
 
         if isTerminal(expr_root):
             if checkTokenType(expr_root) == TokenType.array:
-
                 code = getRegerenceFromArray(expr_root)
+                code += '''
+                mov     rdi, rax
+                '''
             else:
-
                 code = f'''
-            mov     rax, {getReferenceFromToken(expr_root)}
+            mov     rdi, {getReferenceFromToken(expr_root)}
             '''
         else:
             _expr_generator(expr_root)
             code = get_expression_code()
-
+            code += '''
+            mov     rdi, rax
+            '''
         footer = f"""
-    mov     rdi, rax
 ;---------------------- expr end ----------------------
     pop     rdx
     pop     rcx
@@ -167,6 +172,7 @@ def expr_generator(expr_root):
     pop     rax
 ;------------ expr end ------------
     """
+
 
         return header + code + footer
 
