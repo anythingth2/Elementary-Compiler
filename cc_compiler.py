@@ -30,15 +30,15 @@ def generate_nasm_file(filename, code, variable_initializer):
  
     """
 
-    debugging = ''
-    for variable in variable_initializer.getAllVariable():
-        if variable.type == 'INT':
-            debugging += f'''
-    mov     rdi, format
-    mov     rsi,[{variable.aliase}]
-    xor     rax, rax
-    call    {prefix_precedure}printf
-    '''
+    # debugging = ''
+    # for variable in variable_initializer.getAllVariable():
+    #     if variable.type == 'INT':
+    #         debugging += f'''
+    # mov     rdi, format
+    # mov     rsi,[{variable.aliase}]
+    # xor     rax, rax
+    # call    {prefix_precedure}printf
+    # '''
 
     init_variables = ''
     uninit_variables = ''
@@ -72,8 +72,8 @@ def generate_nasm_file(filename, code, variable_initializer):
             uninit_variables += f'{aliase}:     {var_size}  {length}\n'
 
     footer = f"""
-  pop     rbx
-   ret
+    pop     rbx
+    ret
     section .data
 format:  db  "%d",10,0
 {init_variables}
@@ -83,8 +83,8 @@ format:  db  "%d",10,0
 
     path = f'./bin/{filename}.nasm'
     with open(path, 'w') as f:
-        # f.write(header + code  + footer)
-        f.write(header + code +debugging + footer)
+        f.write(header + code  + footer)
+        # f.write(header + code +debugging + footer)
     return path
 
 
@@ -96,19 +96,24 @@ def compileAndRun(nasm_path):
     command = f'nasm -{execute_format} {nasm_path} && gcc {base_path}.o -o {base_path}.{execute_extension} && ./{base_path}.{execute_extension}'
     print(command)
     os.system(command)
-        # os.system(
-    #     f'nasm -felf64 {base_path}.nasm -o {base_path}.exe -l {base_path}.lst')
 
 if __name__ == '__main__':
     _argparser = argparse.ArgumentParser()
     _argparser.add_argument('path', type=str,)
+    _argparser.add_argument('-compile_run',action='store_true',default=False)
     #  open source code
     args = _argparser.parse_args()
+    
 
     if not os.path.isfile(args.path):
         print('file not found')
         exit()
+
     path = args.path
+    if args.compile_run:
+        compileAndRun(path)
+        exit()
+    
     basename = os.path.basename(path)
     filename = basename.split('.')[0]
     with open(path, "r") as f:
