@@ -39,7 +39,6 @@ def getReferenceFromToken(token):
 
 def getRegerenceFromArray(token):
     _, var_name, index_root = token
-    print(f'getRefArray {token}')
     source_code = ''
     source_code += expr_generator(index_root)
 
@@ -136,7 +135,6 @@ def _expr_generator(node):
 
 
 def expr_generator(expr_root):
-    print(f'expr_generator {expr_root}')
     if expr_root:
         header = f"""
 ;------------ expr start ------------
@@ -150,11 +148,9 @@ def expr_generator(expr_root):
         if isTerminal(expr_root):
             if checkTokenType(expr_root) == TokenType.array:
 
-                print(f'expr_generator_terminal array')
                 code = getRegerenceFromArray(expr_root)
             else:
 
-                print(f'expr_generator_terminal ')
                 code = f'''
             mov     rax, {getReferenceFromToken(expr_root)}
             '''
@@ -179,7 +175,6 @@ def expr_generator(expr_root):
 
 def assign_number(var_name, expr_root):  # terminal('var','name_var','value')
     if var_name and expr_root:
-        print(f'assign_number {var_name} {expr_root}')
         return expr_generator(expr_root) + f"""
     mov     [{var_name}], rdi
     """
@@ -189,17 +184,15 @@ def assign_number(var_name, expr_root):  # terminal('var','name_var','value')
 # แล้วค่อยทำการเลือกว่าจะให้ค่าใส่ด้วยอะไร และaddress array ต้องเพิ่มทีละเท่าไหร่
 
 
-def assign_array(terminal):  # terminal('var','name_var','index','value')
-    if terminal:
-        return f"""
-    push    r8                                      ;save register
-
-    mov     r8,qword [{terminal[3]}]                ;temp=value
-    mov     [{terminal[1]}+{terminal[2]}*8]         ;array[index]=temp
-
-    pop     r8
-    """
-
+def assign_array(var_name, index_root, expr_root):  
+    return f'''
+{expr_generator(index_root)}
+    push    rdi
+{expr_generator(expr_root)}
+    pop     r11
+    mov     r12, {var_name}
+    mov     [r12 + r11 * 4], qword rdi
+    '''
 
 printf_count = 0
 

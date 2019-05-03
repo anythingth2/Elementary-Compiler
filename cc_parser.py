@@ -153,7 +153,6 @@ def p_stm_assign(t):
             return None
             # t[0] = None
             # parser.errok()
-    print(f'stm_assign {t[1]} {t[3]}')
     names[t[1]] = t[3]
     t[0] = (t[2], ('VAR', t[1]), t[3])
     emit_sourcecode(cc_codegen.assign_number(
@@ -173,16 +172,15 @@ def p_stm_assign_arr(t):
             names[t[1]] = t[4]
             variable_initializer.register(t[1],
                                           Variable(aliase=f'var_{t[1]}', type='ARR', length=len(t[4]), init_value=[terminal[1] for terminal in t[4]]))
-    print(f'stm_assign_array {t[4]}')
     t[0] = (t[2], ('ARR', t[1], 0), names[t[1]])
 
 
 def p_stm_assign_arr_index(t):
     '''stm : ID L_ARRAY expr R_ARRAY ASSIGNMENT expr NEWLINE'''
-    print(f'stm_assign_arr_index {t[3]} {t[6]}')
     try:
+        variable = variable_initializer.getVariable(t[1])
+        emit_sourcecode(cc_codegen.assign_array(variable.aliase,t[3],t[6]))
         global index
-        names[t[1]][0]
         if t[3][0] == 'INT':
             index = t[3][1]
             
