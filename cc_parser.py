@@ -390,8 +390,6 @@ def p_stm_print(t):
     # str_ct += 1
 
 # string
-
-
 def p_msg(t):
     '''msg : str SEPARATOR msg
            | str '''
