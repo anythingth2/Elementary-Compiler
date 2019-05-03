@@ -148,20 +148,19 @@ def p_stm_eot(t):
 def p_stm_assign(t):
     '''stm : ID ASSIGNMENT expr'''
     if t[3] == None:
-        t[0] = None
+        return None
     elif t[1] not in names:  # for declare
         variable_initializer.register(t[1],
                                       Variable(aliase=f'var_{t[1]}', type='INT', length=1))
-        names[t[1]] = t[3]
-        t[0] = (t[2], ('VAR', t[1]), t[3])
-        emit_sourcecode(cc_codegen.assign_number(
-            variable_initializer.getVariable(t[1]).aliase, t[3]))
     elif type(names[t[1]]) == list:  # require var, not arr
         print("Line ({}) : Syntax error array '{}' expected index".format(
             t.lineno(1), t[1].value))
         parser.errok()
-        t[0] = None
-
+        return None
+    names[t[1]] = t[3]
+    t[0] = (t[2], ('VAR', t[1]), t[3])
+    emit_sourcecode(cc_codegen.assign_number(
+        variable_initializer.getVariable(t[1]).aliase, t[3]))
 
 def p_stm_assign_arr(t):
     '''stm : ID ASSIGNMENT L_ARRAY NUMBER R_ARRAY 
@@ -405,8 +404,10 @@ def p_stm_print(t):
     '''stm : PRINT msg '''
     t[0] = True
     emit_sourcecode(cc_codegen.printf_generator(variable_initializer, t[2]))
+
 def p_stm_print_hex(t):
-    '''stm : PRINT_HEX msg NEWLINE'''
+    '''stm : PRINT_HEX msg '''
+    t[0] = True
     emit_sourcecode(cc_codegen.printf_generator(variable_initializer, t[2], isHex=True))
 
 
@@ -433,10 +434,10 @@ def p_str(t):
 
 
 def p_error(t):
-    pass
-    # if t:
-    #     print("Line ({}) : Syntax error at '{}'".format(t.lineno, t.value))
-    #     parser.errok()
+    # pass
+    if t:
+        print("Line ({}) : Syntax error at '{}'".format(t.lineno, t.value))
+        parser.errok()
 
 # # error statement
 # def p_err_stm(t):
@@ -504,6 +505,11 @@ def p_err_print(t):
     print("Line ({}) : Syntax error expected '<string>' after 'show'".format(t.lineno(2), t[2]))
     parser.errok()
 
+def p_err_print_hex(t):
+    '''stm : PRINT_HEX error '''
+    print("Line ({}) : Syntax error expected '<string>' after 'show_hex'".format(t.lineno(2), t[2]))
+    parser.errok()
+
 # error expression
 def p_err_expr_op(t):
     '''expr : expr PLUS error
@@ -514,12 +520,6 @@ def p_err_expr_op(t):
     print("Line ({}) : Syntax error at '{}' in expression".format(
         t.lineno(3), t[3].value))
     parser.errok()
-
-# def p_err_expr_uminus(t):
-#     '''expr : MINUS error'''
-#     print("Line ({}) : Syntax error unexpected '{}' in expression".format(
-#         t.lineno(2), t[2].value))
-#     parser.errok()
 
 def p_err_expr_paren(t):
     '''expr : L_PAREN expr error'''

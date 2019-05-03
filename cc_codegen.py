@@ -164,8 +164,6 @@ def expr_generator(expr_root):
             mov     rdi, rax
             '''
         footer = f"""
-    mov     rdi, rax
-
     pop     rdx
     pop     rcx
     pop     rbx
@@ -212,7 +210,7 @@ def printf_generator(variable_initializer, params, isHex=False):
         if isinstance(param, str):
             message_format += param
         elif param:
-            message_format += '%d'
+            message_format += '%x' if isHex else '%d'
             argument = argument_registers.pop(0)
             save_registers.add(argument)
             source_code += expr_generator(param)
