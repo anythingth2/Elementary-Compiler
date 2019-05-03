@@ -174,7 +174,7 @@ def assign_array(terminal):  # terminal('var','name_var','index','value')
 printf_count = 0
 
 
-def printf_generator(variable_initializer, params):
+def printf_generator(variable_initializer, params, isHex = False):
     save_registers = set(['rax', 'rcx'])
     argument_registers = ['rsi', 'rdx', 'rcx', 'r8', 'r9']
     message_format = ''
@@ -183,7 +183,7 @@ def printf_generator(variable_initializer, params):
         if isinstance(param, str):
             message_format += param
         else:
-            message_format += '%d'
+            message_format += '%x' if isHex else '%d'  
             argument = argument_registers.pop(0)
             save_registers.add(argument)
             source_code += expr_generator(param)

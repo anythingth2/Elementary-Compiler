@@ -1,9 +1,16 @@
-a := 9999
+
 b := 0
+a := 9999
 if b > 0
     a := 1
+    show "greater ", a, " ", b
 else if b < 0
     a := -1
+    show "less ", a, " ", b
 else  
     a := 0
+    show "equal ", a, " ", b
 end
+show "dec ",1234
+
+show_hex "hex ",1234

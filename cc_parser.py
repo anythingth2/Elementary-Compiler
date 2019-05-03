@@ -382,23 +382,10 @@ def p_elem_many(t):
 def p_stm_print(t):
     '''stm : PRINT msg NEWLINE'''
     emit_sourcecode(cc_codegen.printf_generator(variable_initializer, t[2]))
+def p_stm_print_hex(t):
+    '''stm : PRINT_HEX msg NEWLINE'''
+    emit_sourcecode(cc_codegen.printf_generator(variable_initializer, t[2], isHex=True))
 
-    # global strtemp, str_ct
-    # str_label = f'msg{str_ct}'
-    # strings[str_label] = strtemp
-    # variable_initializer.register(str_label,
-    #                               Variable(aliase=str_label, type='STR', init_value=strtemp))
-    # strlen_label = f'len{str_ct}'
-    # strlens[strlen_label] = len(strtemp)
-    # variable_initializer.register(strlen_label,
-    #                               Variable(aliase=strlen_label, type='INT', length=1, init_value=len(strtemp)))
-    # strtemp = ''
-    # emit_sourcecode(f'mov    edx, len{str_ct}\n')
-    # emit_sourcecode(f'mov    ecx, msg{str_ct}\n')
-    # emit_sourcecode('mov    ebx, 1\n')
-    # emit_sourcecode('mov    eax, 4\n')
-    # emit_sourcecode('int    0x80\n')
-    # str_ct += 1
 
 # string
 def p_msg(t):

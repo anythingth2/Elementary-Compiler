@@ -2,6 +2,7 @@ import ply.lex as lex
 
 reserved = {
     'show'      : 'PRINT',
+    'show_hex'  : 'PRINT_HEX',
     'if'        : 'IF',
     'else'      : 'ELSE',
     'end'       : 'END',

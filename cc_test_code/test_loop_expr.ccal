@@ -1,6 +1,11 @@
-show "loospBeginLoop "
-repeat 1 to 5 inc 1
-    show "loospFirst "
-    show "loosp "
+show "Asm"
+start := 1
+stop := 10
+op := 2
+sum := 0
+repeat start to stop inc op
+    sum := sum+1
+    show "LoopSum is a number ", sum
+
 end
-show "end"
+show "Sum is a number ", sum
