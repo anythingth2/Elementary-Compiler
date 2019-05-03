@@ -138,12 +138,11 @@ def expr_generator(expr_root):
     if expr_root:
         save_register = set(['rax'])
         header = f"""
-;------------ expr start ------------
+;---------------------- expr start ---------------------
     push    rax
     push    rbx
     push    rcx
     push    rdx
-;---------------------- expr start ---------------------
     """
         
  
@@ -165,12 +164,13 @@ def expr_generator(expr_root):
             mov     rdi, rax
             '''
         footer = f"""
-;---------------------- expr end ----------------------
+    mov     rdi, rax
+
     pop     rdx
     pop     rcx
     pop     rbx
     pop     rax
-;------------ expr end ------------
+;---------------------- expr end ----------------------
     """
 
 
@@ -211,8 +211,8 @@ def printf_generator(variable_initializer, params, isHex=False):
     for param in params:
         if isinstance(param, str):
             message_format += param
-        else:
-            message_format += '%x' if isHex else '%d'
+        elif param:
+            message_format += '%d'
             argument = argument_registers.pop(0)
             save_registers.add(argument)
             source_code += expr_generator(param)
