@@ -434,10 +434,10 @@ def p_str(t):
 
 
 def p_error(t):
-    # pass
-    if t:
-        print("Line ({}) : Syntax error at '{}'".format(t.lineno, t.value))
-        parser.errok()
+    pass
+    # if t:
+    #     print("Line ({}) : Syntax error at '{}'".format(t.lineno, t.value))
+    #     parser.errok()
 
 # # error statement
 # def p_err_stm(t):

@@ -1,18 +1,18 @@
-num := {0x6,8,12,0x9,0x1,0,65,0x7,25,0x78}
+num := [0x6,8,12,0x9,10,123,100,91,65,0x7,25}
 max := 0
 i := 0
 show "init ",i
 repeat 1 to 10 inc 1
 
- show "loop number ", i
- show "num ", num[i]
- if max < num[i]
-  show "max is ", max, " set new max ", num[i]
-  max := num[i]
-  
- end
- i := i+1
- show ""
+    show "loop number ", i
+    show "num ", num[i]
+    if max < num[i]
+        show "max is ", max, " set new max ", num[i]
+        max := num[i]
+    
+    end
+    i := i+1
+    show ""
 end
 
 show "Max number is ", max
