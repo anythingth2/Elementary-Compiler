@@ -118,19 +118,23 @@ if __name__ == '__main__':
     filename = basename.split('.')[0]
     with open(path, "r") as f:
         cc_codes = f.readlines()
-        cc_codes[-1] += '\n'
-        cc_codes.append('\n')
+        cc_codes.append('^c')
 
     code_tokens = []
+    run_nasm = True
 
     for line in cc_codes:
-        cc_lexer.lexer.input(line)
-        for token in cc_lexer.lexer:
-            code_tokens.append(str(token))
+        # cc_lexer.lexer.input(line)
+        # for token in cc_lexer.lexer:
+        #     code_tokens.append(str(token))
 
-        tree = cc_parser.parser.parse(line)
-
+        compile_status = cc_parser.parser.parse(line)
+        if not compile_status:
+            run_nasm = False
+    
     generate_tokens_file(filename, code_tokens)
     nasm_path = generate_nasm_file(
         filename, cc_parser.source_code, cc_parser.variable_initializer)
-    compileAndRun(nasm_path)
+        
+    if run_nasm:
+        compileAndRun(nasm_path)
