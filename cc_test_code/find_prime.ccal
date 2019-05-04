@@ -1,0 +1,17 @@
+num := 2
+repeat num to 100 inc 1
+    isPrime := 1
+    iterator := 2
+    repeat iterator to num - 1 inc 1
+        if num mod iterator = 0
+            isPrime := 0
+
+        end
+        iterator := iterator + 1
+    end
+
+    if isPrime = 1
+        show num
+    end
+    num := num + 1
+end
