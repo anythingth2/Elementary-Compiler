@@ -367,8 +367,7 @@ def p_expr_name_arr(t):
         variable = variable_initializer.getVariable(t[1])
         t[0] = ('ARR', variable.aliase, t[3])
     except LookupError:
-        print("Line ({}) : Undefined name '{}'".format(
-            t.lineno(1), t[1].value))
+        print("Line ({}) : Undefined name '{}'".format(t.lineno(1), t[1]))
         t[0] = None
         parser.errok()
     except ValueError:
@@ -457,7 +456,7 @@ def p_error(t):
 
 def p_err_assign(t):
     '''stm : ID error'''
-    print("Line ({}) : Syntax error for identifier '{}'".format(t.lineno(2), t[2].value))
+    print("Line ({}) : Syntax error after identifier '{}'".format(t.lineno(2), t[2].value))
     parser.errok()
 
 def p_err_assign_value(t):
@@ -476,8 +475,7 @@ def p_err_assign_arr(t):
 
 def p_err_arr_index(t):
     '''stm : ID L_ARRAY expr error'''
-    print("Line ({}) : Syntax error for array index at '{}'".format(t.lineno(4), t[4].value))
-    # print("Line ({}) : Syntax error array index expected ']'".format(t.lineno(4), t[4].value))
+    print("Line ({}) : Syntax error for array index at '{}' expected ']'".format(t.lineno(4), t[4].value))
     parser.errok()
 
 # error if
@@ -512,12 +510,12 @@ def p_err_loop_step(t):
 # error print
 def p_err_print(t):
     '''stm : PRINT error '''
-    print("Line ({}) : Syntax error expected '<string>' after 'show'".format(t.lineno(2), t[2]))
+    print("Line ({}) : Syntax error after 'show'".format(t.lineno(2), t[2]))
     parser.errok()
 
 def p_err_print_hex(t):
     '''stm : PRINT_HEX error '''
-    print("Line ({}) : Syntax error expected '<string>' after 'show_hex'".format(t.lineno(2), t[2]))
+    print("Line ({}) : Syntax error after 'show_hex'".format(t.lineno(2), t[2]))
     parser.errok()
 
 # error expression
