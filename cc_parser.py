@@ -35,7 +35,7 @@ class Variable:
 
 
 class VariableInitializer:
-    
+
     def __init__(self):
         self.storage = {}
 
@@ -48,11 +48,11 @@ class VariableInitializer:
     def getAllVariable(self):
         priority = {
         'STR': 1,
-        'INT':2,
-        'ARR' : 3
+        'INT': 2,
+        'ARR': 3
         }
-        variables =list( self.storage.values())
-        variables.sort(key = lambda var: priority[var.type])
+        variables = list(self.storage.values())
+        variables.sort(key=lambda var: priority[var.type])
         return variables
 
 
@@ -63,24 +63,24 @@ variable_initializer = VariableInitializer()
 str_ct = 0
 lp_ct = 0
 end_ct = {'if': 0, 'lp': 0}
-pop_ct_stack = [] # store pop round of pop end: and is else checker
+pop_ct_stack = []  # store pop round of pop end: and is else checker
 lp_stack = []
 end_stack = []
 
 # loop operator add/sub
 loop_op = {
-    'inc':'add     ', 
-    'dec':'sub     '
+    'inc': 'add     ',
+    'dec': 'sub     '
 }
 
 
 # jump condition map sign (invert for short if)
 j_cond = {
-    '=' : 'jne     ',
+    '=': 'jne     ',
     '!=': 'je     ',
-    '>' : 'jle     ',
+    '>': 'jle     ',
     '>=': 'jl     ',
-    '<' : 'jge     ',
+    '<': 'jge     ',
     '<=': 'jg     ',
 
     'inc': 'jg     ',
@@ -132,10 +132,13 @@ def emit_sourcecode(code):
     if code: source_code += code
 
 # statement
+
+
 def p_stm_newline(t):
     '''stm : stm NEWLINE
            | NEWLINE'''
-    t[0] = t[1] # no action, empty line
+    t[0] = t[1]  # no action, empty line
+
 
 def p_stm_eot(t):
     '''stm : EOT'''
@@ -144,6 +147,7 @@ def p_stm_eot(t):
         print("Line ({}) : Syntax error expected 'end'".format(t.lineno(1)))
         t[0] = None
         parser.errok()
+
 
 def p_stm_assign(t):
     '''stm : ID ASSIGNMENT expr'''
@@ -162,8 +166,9 @@ def p_stm_assign(t):
     emit_sourcecode(cc_codegen.assign_number(
         variable_initializer.getVariable(t[1]).aliase, t[3]))
 
+
 def p_stm_assign_arr(t):
-    '''stm : ID ASSIGNMENT L_ARRAY NUMBER R_ARRAY 
+    '''stm : ID ASSIGNMENT L_ARRAY NUMBER R_ARRAY
            | ID ASSIGNMENT L_ELEM_ARRAY elem R_ELEM_ARRAY '''
     if t[1] not in names:
         if t[3] == '[':
@@ -185,11 +190,11 @@ def p_stm_assign_arr_index(t):
     t[0] = True
     try:
         variable = variable_initializer.getVariable(t[1])
-        emit_sourcecode(cc_codegen.assign_array(variable.aliase,t[3],t[6]))
+        emit_sourcecode(cc_codegen.assign_array(variable.aliase, t[3], t[6]))
         global index
         if t[3][0] == 'INT':
             index = t[3][1]
-            
+
         elif t[3][0] == 'VAR':
             index = names[t[3][1]][1]
         elif t[3][0] == 'ARR':
@@ -216,7 +221,7 @@ def p_stm_assign_arr_index(t):
 
 
 def p_stm_if(t):
-    '''stm : IF cond 
+    '''stm : IF cond
            | ELSE IF cond '''
     if t[1] == 'else' and not pop_ct_stack:
         print("Line ({}) : Syntax error found 'else' without 'if' or 'else if'".format(
@@ -262,7 +267,7 @@ def p_stm_else(t):
 
 
 def p_stm_loop(t):
-    '''stm : REPEAT expr TO expr INC expr 
+    '''stm : REPEAT expr TO expr INC expr
            | REPEAT expr TO expr DEC expr '''
     t[0] = True
     pop_ct_stack.append(1)
@@ -285,7 +290,7 @@ def p_stm_loop(t):
     {loop_op[t[5]]}[{index_label}], rdx
     push    rcx
     push    rdx
-    ''')    
+    ''')
 
 
 def p_stm_end(t):
@@ -315,7 +320,12 @@ def p_expr_op(t):
             | expr TIMES expr
             | expr DIVIDE expr
             | expr MODULO expr'''
+    if t[2] in ['/', 'mod'] and t[3][0] == 'INT' and t[3][1] == 0:
+        print("Line ({}) : Syntax error divide or modulo by zero ".format(t.lineno(3)))
+        t[0] = None
+        parser.errok()
     t[0] = (t[2], t[1], t[3])
+    
     if None in t[0]:
         t[0] = None
 

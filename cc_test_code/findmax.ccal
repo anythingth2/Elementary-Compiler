@@ -1,4 +1,4 @@
-num := [0x6,8,12,0x9,10,123,100,91,65,0x7,25}
+num := {0x6,8,12 ,0x9,10,123,100,91,65,0x7}
 max := 0
 i := 0
 show "init ",i
@@ -15,5 +15,5 @@ repeat 1 to 10 inc 1
     show ""
 end
 
-show "Max number is ", max
-show_hex "Max number is ", max
+show "Max number is ", 0-max
+show_hex "Max number is ", 0-max

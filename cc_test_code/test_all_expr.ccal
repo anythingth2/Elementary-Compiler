@@ -1,7 +1,15 @@
-n := 10
+n := 1*(-5+6)+(1/(5-10*(2/0)))
+
 ad := n + 2
 su := n - 2
 mu := n * 2
-di := n / 2
+di := 1/ 2
 mo := n mod 2
 res := ((ad + su + mu) * di) - mo
+show n
+show ad
+show su
+show mu
+show di
+show mo
+show res
